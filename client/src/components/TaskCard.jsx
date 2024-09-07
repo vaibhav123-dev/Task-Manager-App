@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   MdAttachFile,
   MdKeyboardArrowDown,
@@ -14,6 +14,7 @@ import { FaList } from "react-icons/fa";
 import UserInfo from "./UserInfo";
 import { IoMdAdd } from "react-icons/io";
 import AddSubTask from "./task/AddSubTask";
+import { UserContext } from "../context/AuthContext";
 
 const ICONS = {
   high: <MdKeyboardDoubleArrowUp />,
@@ -22,7 +23,7 @@ const ICONS = {
 };
 
 const TaskCard = ({ task }) => {
-  const { user } = useSelector((state) => state.user);
+  const { user } = useContext(UserContext); 
   const [open, setOpen] = useState(false);
 
   return (

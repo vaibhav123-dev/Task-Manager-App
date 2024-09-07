@@ -1,16 +1,19 @@
 import { createContext, useState, useEffect } from "react";
+import { setUser } from "../redux/slices/userSlice";
 
 // Create UserContext
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, addUser] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
+  const [fetchTask, setFetchTask] = useState(false);
 
   // Check localStorage for saved user data on mount (for persistence)
   useEffect(() => {
     const savedUser = localStorage.getItem("userInfo");
     if (savedUser) {
+      addUser(JSON.parse(savedUser));
       setUser(JSON.parse(savedUser));
     }
     setLoading(false); // Stop loading after checking
@@ -28,8 +31,14 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
+  const loadTask = (value) => {
+    setFetchTask(value);
+  };
+
   return (
-    <UserContext.Provider value={{ user, login, logout, loading }}>
+    <UserContext.Provider
+      value={{ user, login, logout, loading, loadTask, fetchTask }}
+    >
       {children}
     </UserContext.Provider>
   );

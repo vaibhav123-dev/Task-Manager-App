@@ -106,6 +106,7 @@ const TaskDialog = ({ task }) => {
       <AddTask
         open={openEdit}
         setOpen={setOpenEdit}
+        isEdit={true}
         task={task}
         key={new Date().getTime()}
       />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ModalWrapper from "../ModalWrapper";
 import { Dialog } from "@headlessui/react";
 import Textbox from "../Textbox";
@@ -7,26 +7,24 @@ import UserList from "./UserList";
 import SelectList from "../SelectList";
 import { BiImages } from "react-icons/bi";
 import Button from "../Button";
-import { postRequest } from "../../common/apiRequest";
+import { postRequest, putRequest } from "../../common/apiRequest";
+import { toast } from "sonner";
 
 const LISTS = ["TODO", "IN PROGRESS", "COMPLETED"];
-const PRIORIRY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
+const PRIORITY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
 
-const uploadedFileURLs = [];
-
-const AddTask = ({ open, setOpen }) => {
-  const task = "";
-
+const AddTask = ({ task, open, setOpen, isEdit }) => {
   const {
     register,
     handleSubmit,
+    setValue,
+    reset,
     formState: { errors },
   } = useForm();
-  const [team, setTeam] = useState(task?.team || []);
-  const [stage, setStage] = useState(task?.stage?.toUpperCase() || LISTS[0]);
-  const [priority, setPriority] = useState(
-    task?.priority?.toUpperCase() || PRIORIRY[2]
-  );
+
+  const [team, setTeam] = useState([]);
+  const [stage, setStage] = useState(LISTS[0]);
+  const [priority, setPriority] = useState(PRIORITY[2]);
   const [assets, setAssets] = useState([]);
   const [uploading, setUploading] = useState(false);
 
@@ -49,17 +47,49 @@ const AddTask = ({ open, setOpen }) => {
       });
     }
 
-    const user = await postRequest("/task/create_task", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    console.log(user);
+    if (isEdit && task?._id) {
+      console.log(task._id);
+      const updateTask = await putRequest(
+        `/task/update_task/${task._id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      if (updateTask) {
+        setOpen(false);
+        toast.success("Task updated successfully");
+      }
+    } else {
+      const newTask = await postRequest("/task/create_task", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (newTask) {
+        setOpen(false);
+        toast.success("Task created successfully");
+      }
+    }
   };
 
   const handleSelect = (e) => {
     setAssets(e.target.files);
   };
+
+  useEffect(() => {
+    if (task) {
+      setValue("title", task.title);
+      setValue("date", task.date?.split("T")[0]); // Assuming date is in ISO format
+      setPriority(task.priority?.toUpperCase());
+      setStage(task.stage?.toUpperCase());
+      setAssets(task.assets || []);
+    } else {
+      reset(); // Reset form when no task is provided
+    }
+  }, [task, setValue, reset]);
 
   return (
     <>
@@ -69,7 +99,7 @@ const AddTask = ({ open, setOpen }) => {
             as="h2"
             className="text-base font-bold leading-6 text-gray-900 mb-4"
           >
-            {task ? "UPDATE TASK" : "ADD TASK"}
+            {isEdit ? "UPDATE TASK" : "ADD TASK"}
           </Dialog.Title>
 
           <div className="mt-2 flex flex-col gap-6">
@@ -111,7 +141,7 @@ const AddTask = ({ open, setOpen }) => {
             <div className="flex gap-4">
               <SelectList
                 label="Priority Level"
-                lists={PRIORIRY}
+                lists={PRIORITY}
                 selected={priority}
                 setSelected={setPriority}
               />

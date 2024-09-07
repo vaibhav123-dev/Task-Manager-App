@@ -54,7 +54,6 @@ export const createTask = async (req, res) => {
     };
 
     const teamArray = team.split(",").map((id) => new mongoose.Types.ObjectId(id.trim()));
-    console.log(fileUrls, teamArray);
 
     const task = await Task.create({
       title,
@@ -75,6 +74,228 @@ export const createTask = async (req, res) => {
     res.status(200).json(new ApiResponse(201, task, "Task create successfully"));
   } catch (error) {
     throw new ApiError(500, error.message || "Something went wrong while creating task");
+  }
+};
+
+export const getTasks = async (req, res) => {
+  try {
+    const { stage, isTrashed } = req.query;
+
+    let query = { isTrashed: isTrashed ? true : false };
+
+    if (stage) {
+      query.stage = stage;
+    }
+
+    let queryResult = Task.find(query)
+      .populate({
+        path: "team",
+        select: "name title email",
+      })
+      .sort({ _id: -1 });
+
+    const tasks = await queryResult;
+
+    res.status(200).json(
+      new ApiResponse(
+        201,
+        {
+          status: true,
+          tasks,
+        },
+        "Tasks fetch successfully"
+      )
+    );
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while fetching tasks");
+  }
+};
+
+export const getTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findById(id)
+      .populate({
+        path: "team", // Populating team members
+        select: "name title role email", // Selecting fields to display
+      })
+      .populate({
+        path: "activities.by", // Populating the 'by' field in activities
+        select: "name", // Selecting the 'name' field from User
+      });
+
+    res.status(200).json(
+      new ApiResponse(
+        201,
+        {
+          status: true,
+          task,
+        },
+        "Task Fetch Successfully"
+      )
+    );
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while fetching task");
+  }
+};
+
+export const createSubTask = async (req, res) => {
+  try {
+    const { title, tag, date } = req.body;
+
+    const { id } = req.params;
+
+    const newSubTask = {
+      title,
+      date,
+      tag,
+    };
+
+    const task = await Task.findById(id);
+
+    task.subTasks.push(newSubTask);
+
+    await task.save();
+
+    res.status(200).json(new ApiResponse(201, task, "Subtask added successfully"));
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while adding subtask");
+  }
+};
+
+export const updateTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, date, team, stage, priority } = req.body;
+    const user = req.user;
+
+    if (!title) {
+      throw new ApiError("400", "Title is required");
+    }
+
+    if (!date) {
+      throw new ApiError("400", "Date is required");
+    }
+
+    const task = await Task.findById(id);
+
+    if (!task) {
+      throw new ApiError("404", "Task not found");
+    }
+
+    // File handling (if files are provided)
+    let fileUrls = task.assets || [];
+
+    if (req.files && req.files.length > 0) {
+      // Use Promise.all to upload all files concurrently
+      const uploadedFiles = await Promise.all(
+        req.files.map((file) => uploadOnCloudinary(file.path))
+      );
+
+      // Filter out null responses in case any upload failed
+      const validUploads = uploadedFiles.filter((file) => file !== null);
+
+      // Collect secure URLs of successfully uploaded files
+      fileUrls = validUploads.map((upload) => upload.secure_url);
+    }
+
+    // Update the activity
+    let text = `Task "${task.title}" has been updated`;
+    if (team?.length > 1) {
+      text = text + ` and assigned to ${team?.length} members.`;
+    }
+
+    text += ` The task priority is updated to ${priority} priority and the new date is ${new Date(
+      date
+    ).toDateString()}.`;
+
+    const activity = {
+      type: "assigned",
+      activity: text,
+      by: user._id,
+    };
+
+    // Validate and convert `team` into ObjectId array
+    let teamArray = [];
+    if (team) {
+      const teamMembers = team.split(",");
+      teamArray = teamMembers.map((id) => {
+        if (mongoose.Types.ObjectId.isValid(id.trim())) {
+          return new mongoose.Types.ObjectId(id.trim());
+        } else {
+          throw new ApiError("400", "Invalid team member ID");
+        }
+      });
+    }
+
+    // Update the task fields
+    task.title = title;
+    task.date = date;
+    task.priority = priority.toLowerCase();
+    task.stage = stage.toLowerCase();
+    task.team = teamArray;
+    task.assets = fileUrls;
+    task.activities.push(activity); // Add the new activity
+
+    await task.save();
+
+    // Send notice to the team
+    await Notice.create({
+      team: teamArray,
+      text,
+      task: task._id,
+    });
+
+    res.status(200).json(new ApiResponse(200, task, "Task updated successfully"));
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while updating the task");
+  }
+};
+
+export const trashTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const task = await Task.findById(id);
+
+    task.isTrashed = true;
+
+    await task.save();
+
+    res.status(200).json({
+      status: true,
+      message: `Task trashed successfully.`,
+    });
+  } catch (error) {
+    return res.status(400).json({ status: false, message: error.message });
+  }
+};
+
+export const deleteRestoreTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { actionType } = req.query;
+
+    if (actionType === "delete") {
+      await Task.findByIdAndDelete(id);
+    } else if (actionType === "deleteAll") {
+      await Task.deleteMany({ isTrashed: true });
+    } else if (actionType === "restore") {
+      const resp = await Task.findById(id);
+
+      resp.isTrashed = false;
+      resp.save();
+    } else if (actionType === "restoreAll") {
+      await Task.updateMany({ isTrashed: true }, { $set: { isTrashed: false } });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: `Operation performed successfully.`,
+    });
+  } catch (error) {
+    return res.status(400).json({ status: false, message: error.message });
   }
 };
 
@@ -215,149 +436,6 @@ export const dashboardStatistics = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const getTasks = async (req, res) => {
-  try {
-    const { stage, isTrashed } = req.query;
-
-    let query = { isTrashed: isTrashed ? true : false };
-
-    if (stage) {
-      query.stage = stage;
-    }
-
-    let queryResult = Task.find(query)
-      .populate({
-        path: "team",
-        select: "name title email",
-      })
-      .sort({ _id: -1 });
-
-    const tasks = await queryResult;
-
-    res.status(200).json({
-      status: true,
-      tasks,
-    });
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const getTask = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const task = await Task.findById(id)
-      .populate({
-        path: "team",
-        select: "name title role email",
-      })
-      .populate({
-        path: "activities.by",
-        select: "name",
-      });
-
-    res.status(200).json({
-      status: true,
-      task,
-    });
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const createSubTask = async (req, res) => {
-  try {
-    const { title, tag, date } = req.body;
-
-    const { id } = req.params;
-
-    const newSubTask = {
-      title,
-      date,
-      tag,
-    };
-
-    const task = await Task.findById(id);
-
-    task.subTasks.push(newSubTask);
-
-    await task.save();
-
-    res.status(200).json({ status: true, message: "SubTask added successfully." });
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const updateTask = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, date, team, stage, priority, assets } = req.body;
-
-    const task = await Task.findById(id);
-
-    task.title = title;
-    task.date = date;
-    task.priority = priority.toLowerCase();
-    task.assets = assets;
-    task.stage = stage.toLowerCase();
-    task.team = team;
-
-    await task.save();
-
-    res.status(200).json({ status: true, message: "Task duplicated successfully." });
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const trashTask = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const task = await Task.findById(id);
-
-    task.isTrashed = true;
-
-    await task.save();
-
-    res.status(200).json({
-      status: true,
-      message: `Task trashed successfully.`,
-    });
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const deleteRestoreTask = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { actionType } = req.query;
-
-    if (actionType === "delete") {
-      await Task.findByIdAndDelete(id);
-    } else if (actionType === "deleteAll") {
-      await Task.deleteMany({ isTrashed: true });
-    } else if (actionType === "restore") {
-      const resp = await Task.findById(id);
-
-      resp.isTrashed = false;
-      resp.save();
-    } else if (actionType === "restoreAll") {
-      await Task.updateMany({ isTrashed: true }, { $set: { isTrashed: false } });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: `Operation performed successfully.`,
-    });
-  } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
 };

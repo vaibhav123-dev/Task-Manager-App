@@ -25,7 +25,7 @@ router.route("/").get(verifyJWT, getTasks);
 router.route("/:id").get(verifyJWT, getTask);
 
 router.route("/create-subtask/:id").put(verifyJWT, isAdminRoute, createSubTask);
-router.route("/update/:id").put(verifyJWT, isAdminRoute, updateTask);
+router.route("/update_task/:id").put(verifyJWT, isAdminRoute, upload.array("assets"), updateTask);
 router.route("/:id").put(verifyJWT, isAdminRoute, trashTask);
 
 router.route("/delete-restore/:id?").delete(verifyJWT, isAdminRoute, deleteRestoreTask);
