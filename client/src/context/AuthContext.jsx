@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { createContext, useState, useEffect } from "react";
 
 // Create UserContext
@@ -6,6 +5,7 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   // Check localStorage for saved user data on mount (for persistence)
   useEffect(() => {
@@ -13,6 +13,7 @@ export const UserProvider = ({ children }) => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    setLoading(false); // Stop loading after checking
   }, []);
 
   // Function to handle login
@@ -28,7 +29,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   MdDashboard,
   MdOutlineAddTask,
@@ -11,9 +11,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { setOpenSidebar } from "../redux/slices/userSlice";
+import { UserContext } from "../context/AuthContext";
 
 const Sidebar = () => {
-  const { user } = useSelector((state) => state.user);
+  const { user } = useContext(UserContext);
 
   const dispatch = useDispatch();
   const location = useLocation();

@@ -12,10 +12,11 @@ import {
   updateTask,
 } from "../controllers/taskController.js";
 import { isAdminRoute, verifyJWT } from "../middlewares/authMiddlewave.js";
+import { upload } from "../middlewares/multerMiddleware.js";
 
 const router = express.Router();
 
-router.route("/create").post(verifyJWT, isAdminRoute, createTask);
+router.route("/create_task").post(verifyJWT, isAdminRoute, upload.array("assets"), createTask);
 router.route("/duplicate/:id").post(verifyJWT, isAdminRoute, duplicateTask);
 router.route("/activity/:id").post(verifyJWT, postTaskActivity);
 

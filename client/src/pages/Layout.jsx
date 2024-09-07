@@ -36,11 +36,16 @@ function Layout() {
 }
 
 function AuthLayout() {
-  const { user } = useContext(UserContext);
+  const { user, loading } = useContext(UserContext);  // Get loading from context
 
   const dispatch = useDispatch();
 
   const location = useLocation();
+
+  if (loading) {
+    // You can return a loading spinner or just nothing while loading
+    return <div>Loading...</div>;
+  }
 
   useEffect(() => {
     // This will be called every time the route changes

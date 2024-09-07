@@ -1,12 +1,40 @@
 import Notice from "../models/notification.js";
 import Task from "../models/task.js";
 import User from "../models/user.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { mongoose } from "mongoose";
 
 export const createTask = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const user = req.user;
+    // console.log(req.body, req.files);
 
-    const { title, team, stage, date, priority, assets } = req.body;
+    const { title, team, stage, date, priority } = req.body;
+
+    if (!title) {
+      throw new ApiError("400", "Title is required");
+    }
+
+    if (!date) {
+      throw new ApiError("400", "Date is required");
+    }
+
+    let fileUrls;
+
+    if (req.files && req.files.length > 0) {
+      // Use Promise.all to upload all files concurrently
+      const uploadedFiles = await Promise.all(
+        req.files.map((file) => uploadOnCloudinary(file.path))
+      );
+
+      // Filter out null responses in case any upload failed
+      const validUploads = uploadedFiles.filter((file) => file !== null);
+
+      // Collect secure URLs of successfully uploaded files
+      fileUrls = validUploads.map((upload) => upload.secure_url);
+    }
 
     let text = "New task has been assigned to you";
     if (team?.length > 1) {
@@ -22,30 +50,31 @@ export const createTask = async (req, res) => {
     const activity = {
       type: "assigned",
       activity: text,
-      by: userId,
+      by: user._id,
     };
+
+    const teamArray = team.split(",").map((id) => new mongoose.Types.ObjectId(id.trim()));
+    console.log(fileUrls, teamArray);
 
     const task = await Task.create({
       title,
-      team,
+      team: teamArray,
       stage: stage.toLowerCase(),
       date,
       priority: priority.toLowerCase(),
-      assets,
+      assets: fileUrls,
       activities: activity,
     });
 
     await Notice.create({
-      team,
+      team: teamArray,
       text,
       task: task._id,
     });
 
-    res
-      .status(200)
-      .json({ status: true, task, message: "Task created successfully." });
+    res.status(200).json(new ApiResponse(201, task, "Task create successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while creating task");
   }
 };
 
@@ -86,9 +115,7 @@ export const duplicateTask = async (req, res) => {
       task: newTask._id,
     });
 
-    res
-      .status(200)
-      .json({ status: true, message: "Task duplicated successfully." });
+    res.status(200).json({ status: true, message: "Task duplicated successfully." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -112,9 +139,7 @@ export const postTaskActivity = async (req, res) => {
 
     await task.save();
 
-    res
-      .status(200)
-      .json({ status: true, message: "Activity posted successfully." });
+    res.status(200).json({ status: true, message: "Activity posted successfully." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -263,9 +288,7 @@ export const createSubTask = async (req, res) => {
 
     await task.save();
 
-    res
-      .status(200)
-      .json({ status: true, message: "SubTask added successfully." });
+    res.status(200).json({ status: true, message: "SubTask added successfully." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -287,9 +310,7 @@ export const updateTask = async (req, res) => {
 
     await task.save();
 
-    res
-      .status(200)
-      .json({ status: true, message: "Task duplicated successfully." });
+    res.status(200).json({ status: true, message: "Task duplicated successfully." });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }
@@ -329,10 +350,7 @@ export const deleteRestoreTask = async (req, res) => {
       resp.isTrashed = false;
       resp.save();
     } else if (actionType === "restoreAll") {
-      await Task.updateMany(
-        { isTrashed: true },
-        { $set: { isTrashed: false } }
-      );
+      await Task.updateMany({ isTrashed: true }, { $set: { isTrashed: false } });
     }
 
     res.status(200).json({
