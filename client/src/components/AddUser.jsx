@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import ModalWrapper from "./ModalWrapper";
@@ -12,14 +12,14 @@ import { toast } from "sonner";
 
 const isAdmin = ["Yes", "No"];
 
-const AddUser = ({ open, setOpen, userData }) => {
-  let defaultValues = userData ?? {};
+const AddUser = ({ open, setOpen, userData, isAdd }) => {
   const { user } = useSelector((state) => state.user);
   const [admin, setAdmin] = useState(isAdmin[1]);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({});
 
@@ -38,13 +38,27 @@ const AddUser = ({ open, setOpen, userData }) => {
     if (admin == "Yes") data.isAdmin = true;
     else data.isAdmin = false;
 
-    const user = await postRequest("/user/register", data);
+    if (isAdd) {
+      const user = await postRequest("/user/register", data);
+      if (!user) toast.error("Something went wrong");
 
-    if (!user) toast.error("Something went wrong");
-
-    toast.success(`User Added Successfully  ${user?.data?.user?.name}`);
-    setOpen(false);
+      toast.success(`User Added Successfully  ${user?.data?.user?.name}`);
+      setOpen(false);
+    } else {
+      //do it tommorow
+    }
   };
+
+  useEffect(() => {
+    if (!isAdd) {
+      setValue("name", userData?.name);
+      setValue("email", userData?.email);
+      setValue("title", userData?.title);
+      setValue("role", userData?.role);
+      setValue("isActive", userData?.isActive);
+      setValue("isAdmin", userData?.isAdmin);
+    }
+  }, [userData]);
 
   return (
     <>
@@ -88,7 +102,7 @@ const AddUser = ({ open, setOpen, userData }) => {
               label="Password"
               className="w-full rounded"
               register={register("password", {
-                required: "Password is required!",
+                ...(isAdd && { required: "Password is required!" }),
               })}
               error={errors.password ? errors.password.message : ""}
             />

@@ -1,46 +1,13 @@
 import { Popover, Transition } from "@headlessui/react";
 import moment from "moment";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { BiSolidMessageRounded } from "react-icons/bi";
 import { HiBellAlert } from "react-icons/hi2";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { Link } from "react-router-dom";
+import { getRequest, putRequest } from "../common/apiRequest";
+import { useDispatch, useSelector } from "react-redux";
+import { setNotifications } from "../redux/slices/notificationSlice";
 
-const data = [
-  {
-    _id: "65c5bbf3787832cf99f28e6d",
-    team: [
-      "65c202d4aa62f32ffd1303cc",
-      "65c27a0e18c0a1b750ad5cad",
-      "65c30b96e639681a13def0b5",
-    ],
-    text: "New task has been assigned to you and 2 others. The task priority is set a normal priority, so check and act accordingly. The task date is Thu Feb 29 2024. Thank you!!!",
-    task: null,
-    notiType: "alert",
-    isRead: [],
-    createdAt: "2024-02-09T05:45:23.353Z",
-    updatedAt: "2024-02-09T05:45:23.353Z",
-    __v: 0,
-  },
-  {
-    _id: "65c5f12ab5204a81bde866ab",
-    team: [
-      "65c202d4aa62f32ffd1303cc",
-      "65c30b96e639681a13def0b5",
-      "65c317360fd860f958baa08e",
-    ],
-    text: "New task has been assigned to you and 2 others. The task priority is set a high priority, so check and act accordingly. The task date is Fri Feb 09 2024. Thank you!!!",
-    task: {
-      _id: "65c5f12ab5204a81bde866a9",
-      title: "Test task",
-    },
-    notiType: "alert",
-    isRead: [],
-    createdAt: "2024-02-09T09:32:26.810Z",
-    updatedAt: "2024-02-09T09:32:26.810Z",
-    __v: 0,
-  },
-];
 const ICONS = {
   alert: (
     <HiBellAlert className="h-5 w-5 text-gray-600 group-hover:text-indigo-600" />
@@ -51,34 +18,55 @@ const ICONS = {
 };
 
 const NotificationPanel = () => {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const { notifications } = useSelector((state) => state.notifications);
+  const [isRead, setIsRead] = useState(false);
 
-  //  const { data, refetch } = useGetNotificationsQuery();
-  //  const [markAsRead] = useMarkNotiAsReadMutation();
+  const dispatch = useDispatch();
 
-  const readHandler = () => {};
-  const viewHandler = () => {};
+  const viewHandler = async (notification) => {
+    const data = await putRequest(
+      `/user/read-notifications?id=${notification._id}`
+    );
+    setIsRead(!isRead);
+  };
 
-  const callsToAction = [ 
+  const readHandler = async (readType) => {
+    const data = await putRequest(
+      `/user/read-notifications?isReadType=${readType}`
+    );
+    setIsRead(!isRead);
+  };
+
+  const callsToAction = [
     { name: "Cancel", href: "#", icon: "" },
     {
       name: "Mark All Read",
       href: "#",
       icon: "",
-      onClick: () => readHandler("all", ""),
+      onClick: () => readHandler("all"),
     },
   ];
+
+  const getNotificationsList = async () => {
+    const notificationsList = await getRequest("user/notifications");
+    if (notificationsList?.data) {
+      dispatch(setNotifications(notificationsList?.data));
+    }
+  };
+
+  useEffect(() => {
+    getNotificationsList();
+  }, [isRead]);
 
   return (
     <>
       <Popover className="relative">
         <Popover.Button className="inline-flex items-center outline-none">
           <div className="w-8 h-8 flex items-center justify-center text-gray-800 relative">
-            <IoIosNotificationsOutline className="text-2xl" />
-            {data?.length > 0 && (
-              <span className="absolute text-center top-0 right-1 text-sm text-white font-semibold w-4 h-4 rounded-full bg-red-600">
-                {data?.length}
+            <IoIosNotificationsOutline className="text-4xl" />
+            {notifications?.length > 0 && (
+              <span className="absolute text-center top-0 right-0 text-sm text-white font-semibold w-5 h-5 rounded-full bg-red-600">
+                {notifications?.length}
               </span>
             )}
           </div>
@@ -95,10 +83,10 @@ const NotificationPanel = () => {
         >
           <Popover.Panel className="absolute -right-16 md:-right-2 z-10 mt-5 flex w-screen max-w-max  px-4">
             {({ close }) =>
-              data?.length > 0 && (
+              notifications?.length > 0 && (
                 <div className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
-                  <div className="p-4">
-                    {data?.slice(0, 5).map((item, index) => (
+                  <div className="p-4 max-h-80 overflow-y-auto">
+                    {notifications?.map((item, index) => (
                       <div
                         key={item._id + index}
                         className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50"
@@ -127,7 +115,7 @@ const NotificationPanel = () => {
 
                   <div className="grid grid-cols-2 divide-x bg-gray-50">
                     {callsToAction.map((item) => (
-                      <Link
+                      <button
                         key={item.name}
                         onClick={
                           item?.onClick ? () => item.onClick() : () => close()
@@ -135,7 +123,7 @@ const NotificationPanel = () => {
                         className="flex items-center justify-center gap-x-2.5 p-3 font-semibold text-blue-600 hover:bg-gray-100"
                       >
                         {item.name}
-                      </Link>
+                      </button>
                     ))}
                   </div>
                 </div>

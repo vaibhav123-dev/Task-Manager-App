@@ -17,6 +17,7 @@ const Users = () => {
   const [openAction, setOpenAction] = useState(false);
   const [selected, setSelected] = useState(null);
   const [team, setTeam] = useState([]);
+  const [isAdd, setIsAdd] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -89,7 +90,10 @@ const Users = () => {
           className="text-blue-600 hover:text-blue-500 font-semibold sm:px-0"
           label="Edit"
           type="button"
-          onClick={() => editClick(user)}
+          onClick={() => {
+            editClick(user);
+            setIsAdd(false);
+          }}
         />
 
         <Button
@@ -111,7 +115,10 @@ const Users = () => {
             label="Add New User"
             icon={<IoMdAdd className="text-lg" />}
             className="flex flex-row-reverse gap-1 items-center bg-blue-600 text-white rounded-md 2xl:py-2.5"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              setOpen(true);
+              setIsAdd(true);
+            }}
           />
         </div>
 
@@ -131,6 +138,7 @@ const Users = () => {
 
       <AddUser
         open={open}
+        isAdd={isAdd}
         setOpen={setOpen}
         userData={selected}
         key={new Date().getTime().toString()}

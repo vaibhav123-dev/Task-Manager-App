@@ -124,16 +124,43 @@ export const getTeamList = async (req, res) => {
 
 export const getNotificationsList = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { _id } = req.user;
 
     const notice = await Notice.find({
-      team: userId,
-      isRead: { $nin: [userId] },
+      team: _id,
+      isRead: { $nin: [_id] },
     }).populate("task", "title");
 
-    res.status(201).json(notice);
+    res.status(201).json(new ApiResponse(200, notice, "Notifications fetch successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while fetching notifications");
+  }
+};
+
+export const markNotificationRead = async (req, res) => {
+  try {
+    const { _id } = req.user;
+
+    const { isReadType, id } = req.query;
+    console.log(isReadType, id);
+
+    if (isReadType === "all") {
+      await Notice.updateMany(
+        { team: _id, isRead: { $nin: [_id] } },
+        { $push: { isRead: _id } },
+        { new: true }
+      );
+    } else {
+      await Notice.findOneAndUpdate(
+        { _id: id, isRead: { $nin: [_id] } },
+        { $push: { isRead: _id } },
+        { new: true }
+      );
+    }
+
+    res.status(201).json(new ApiResponse(200, {}, "Notifications read successfully"));
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while reading notifications");
   }
 };
 
@@ -163,32 +190,6 @@ export const updateUserProfile = async (req, res) => {
     } else {
       res.status(404).json({ status: false, message: "User not found" });
     }
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const markNotificationRead = async (req, res) => {
-  try {
-    const { userId } = req.user;
-
-    const { isReadType, id } = req.query;
-
-    if (isReadType === "all") {
-      await Notice.updateMany(
-        { team: userId, isRead: { $nin: [userId] } },
-        { $push: { isRead: userId } },
-        { new: true }
-      );
-    } else {
-      await Notice.findOneAndUpdate(
-        { _id: id, isRead: { $nin: [userId] } },
-        { $push: { isRead: userId } },
-        { new: true }
-      );
-    }
-
-    res.status(201).json({ status: true, message: "Done" });
   } catch (error) {
     return res.status(400).json({ status: false, message: error.message });
   }

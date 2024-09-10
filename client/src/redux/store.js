@@ -3,6 +3,7 @@ import userReducer from "./slices/userSlice.js";
 import teamReducer from "./slices/teamSlice.js";
 import taskReducer from "./slices/taskSlice.js";
 import dashboardReducer from "./slices/dashboardSlice.js";
+import notificationsReducer from "./slices/notificationSlice.js";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     team: teamReducer,
     tasks: taskReducer,
     dashboard: dashboardReducer,
+    notifications: notificationsReducer,
   },
 });
 

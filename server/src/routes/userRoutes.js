@@ -23,8 +23,8 @@ router.route("/logout").post(logoutUser);
 router.route("/get-team").get(verifyJWT, isAdminRoute, getTeamList);
 router.route("/notifications").get(verifyJWT, getNotificationsList);
 
+router.route("/read-notifications").put(verifyJWT, markNotificationRead);
 router.route("/profile").put(verifyJWT, updateUserProfile);
-router.route("/read-noti").put(verifyJWT, markNotificationRead);
 router.route("/change-password").put(verifyJWT, changeUserPassword);
 
 // ADMIN ONLY - ADMIN ROUTES
