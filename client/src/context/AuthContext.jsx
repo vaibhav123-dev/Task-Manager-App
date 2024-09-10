@@ -32,7 +32,10 @@ export const UserProvider = ({ children }) => {
   };
 
   const loadTask = (value) => {
-    setFetchTask(value);
+    setFetchTask(false);
+    setTimeout(() => {
+      setFetchTask(value);
+    }, 0);
   };
 
   return (

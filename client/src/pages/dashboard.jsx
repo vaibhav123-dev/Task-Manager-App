@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   MdAdminPanelSettings,
   MdKeyboardArrowDown,
@@ -9,17 +9,19 @@ import { LuClipboardEdit } from "react-icons/lu";
 import { FaNewspaper, FaUsers } from "react-icons/fa";
 import { FaArrowsToDot } from "react-icons/fa6";
 import moment from "moment";
-import { summary } from "../assets/data";
 import clsx from "clsx";
 import { Chart } from "../components/Chart";
 import { BGS, PRIOTITYSTYELS, TASK_TYPE, getInitials } from "../utils";
 import UserInfo from "../components/UserInfo";
+import { getRequest } from "./../common/apiRequest";
+import { useDispatch, useSelector } from "react-redux";
+import { setData } from "../redux/slices/dashboardSlice";
 
 const TaskTable = ({ tasks }) => {
   const ICONS = {
     high: <MdKeyboardDoubleArrowUp />,
     medium: <MdKeyboardArrowUp />,
-    low: <MdKeyboardArrowDown />,
+    normal: <MdKeyboardArrowDown />,
   };
 
   const TableHeader = () => (
@@ -71,7 +73,7 @@ const TaskTable = ({ tasks }) => {
       </td>
       <td className="py-2 hidden md:block">
         <span className="text-base text-gray-600">
-          {moment(task?.date).fromNow()}
+          {moment(task?.createdAt).fromNow()}
         </span>
       </td>
     </tr>
@@ -107,7 +109,7 @@ const UserTable = ({ users }) => {
     <tr className="border-b border-gray-200  text-gray-600 hover:bg-gray-400/10">
       <td className="py-2">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-violet-700">
+          <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-violet-700 mr-1">
             <span className="text-center">{getInitials(user?.name)}</span>
           </div>
 
@@ -121,11 +123,10 @@ const UserTable = ({ users }) => {
       <td>
         <p
           className={clsx(
-            "w-fit px-3 py-1 rounded-full text-sm",
-            user?.isActive ? "bg-blue-200" : "bg-yellow-100"
+            "w-fit px-3 py-1 rounded-full text-sm bg-blue-200 mr-3"
           )}
         >
-          {user?.isActive ? "Active" : "Disabled"}
+          Active
         </p>
       </td>
       <td className="py-2 text-sm">{moment(user?.createdAt).fromNow()}</td>
@@ -145,35 +146,37 @@ const UserTable = ({ users }) => {
     </div>
   );
 };
+
 const Dashboard = () => {
-  const totals = summary.tasks;
+  const { dashboard } = useSelector((state) => state.dashboard);
+  const dispatch = useDispatch();
 
   const stats = [
     {
       _id: "1",
       label: "TOTAL TASK",
-      total: summary?.totalTasks || 0,
+      total: dashboard?.totalTasks || 0,
       icon: <FaNewspaper />,
       bg: "bg-[#1d4ed8]",
     },
     {
       _id: "2",
-      label: "COMPLTED TASK",
-      total: totals["completed"] || 0,
+      label: "COMPLETED TASK",
+      total: dashboard?.tasks["completed"] || 0,
       icon: <MdAdminPanelSettings />,
       bg: "bg-[#0f766e]",
     },
     {
       _id: "3",
       label: "TASK IN PROGRESS ",
-      total: totals["in progress"] || 0,
+      total: dashboard?.tasks["in progress"] || 0,
       icon: <LuClipboardEdit />,
       bg: "bg-[#f59e0b]",
     },
     {
       _id: "4",
       label: "TODOS",
-      total: totals["todo"],
+      total: dashboard?.tasks["todo"],
       icon: <FaArrowsToDot />,
       bg: "bg-[#be185d]" || 0,
     },
@@ -185,7 +188,7 @@ const Dashboard = () => {
         <div className="h-full flex flex-1 flex-col justify-between">
           <p className="text-base text-gray-600">{label}</p>
           <span className="text-2xl font-semibold">{count}</span>
-          <span className="text-sm text-gray-400">{"110 last month"}</span>
+          <span className="text-sm text-gray-400"></span>
         </div>
 
         <div
@@ -199,6 +202,18 @@ const Dashboard = () => {
       </div>
     );
   };
+
+  const getDashboardData = async () => {
+    const dashboardData = await getRequest("/task/dashboard");
+    if (dashboardData?.data) {
+      dispatch(setData(dashboardData?.data));
+    }
+  };
+
+  useEffect(() => {
+    getDashboardData();
+  }, []);
+
   return (
     <div className="h-full py-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -211,17 +226,17 @@ const Dashboard = () => {
         <h4 className="text-xl text-gray-600 font-semibold">
           Chart by Priority
         </h4>
-        <Chart />
+        <Chart chartData={dashboard?.graphData} />
       </div>
 
       <div className="w-full flex flex-col md:flex-row gap-4 2xl:gap-10 py-8">
         {/* /left */}
 
-        <TaskTable tasks={summary.last10Task} />
+        <TaskTable tasks={dashboard?.last10Task} />
 
         {/* /right */}
 
-        <UserTable users={summary.users} />
+        <UserTable users={dashboard?.users} />
       </div>
     </div>
   );

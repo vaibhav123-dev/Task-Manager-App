@@ -42,13 +42,13 @@ const Tasks = () => {
   const status = params?.status || "";
 
   const getTask = async () => {
-    const tasks = await getRequest("/task");
+    const tasks = await getRequest(`/task?stage=${status}`);
     dispatch(setTasks(tasks?.data?.tasks));
   };
 
   useEffect(() => {
     getTask();
-  }, [fetchTask]);
+  }, [fetchTask, status]);
 
   return loading ? (
     <div className="py-10">

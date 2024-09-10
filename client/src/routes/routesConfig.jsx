@@ -5,7 +5,7 @@ import TaskDetails from "./../pages/TaskDetails";
 import { Layout } from "../pages/Layout.jsx";
 import { AuthLayout } from "../pages/Layout.jsx";
 import Users from "./../pages/Users";
-import Trash from './../pages/Trash';
+import Trash from "./../pages/Trash";
 
 const routes = [
   {
@@ -43,7 +43,7 @@ const routes = [
         element: <Trash />,
       },
       {
-        path: "/in-progress/:status",
+        path: "/in progress/:status",
         element: <Tasks />,
       },
       {

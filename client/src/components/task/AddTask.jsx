@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ModalWrapper from "../ModalWrapper";
 import { Dialog } from "@headlessui/react";
 import Textbox from "../Textbox";
@@ -9,6 +9,7 @@ import { BiImages } from "react-icons/bi";
 import Button from "../Button";
 import { postRequest, putRequest } from "../../common/apiRequest";
 import { toast } from "sonner";
+import { UserContext } from "../../context/AuthContext";
 
 const LISTS = ["TODO", "IN PROGRESS", "COMPLETED"];
 const PRIORITY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
@@ -27,6 +28,7 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
   const [priority, setPriority] = useState(PRIORITY[2]);
   const [assets, setAssets] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const { loadTask } = useContext(UserContext);
 
   const submitHandler = async (data) => {
     const formData = new FormData();
@@ -48,7 +50,6 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
     }
 
     if (isEdit && task?._id) {
-      console.log(task._id);
       const updateTask = await putRequest(
         `/task/update_task/${task._id}`,
         formData,
@@ -73,6 +74,7 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
         toast.success("Task created successfully");
       }
     }
+    loadTask(true);
   };
 
   const handleSelect = (e) => {

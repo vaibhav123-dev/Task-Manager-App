@@ -48,7 +48,7 @@ export const createTask = async (req, res) => {
       ).toDateString()}. Thank you!!!`;
 
     const activity = {
-      type: "assigned",
+      type: "Assigned",
       activity: text,
       by: user._id,
     };
@@ -211,7 +211,7 @@ export const updateTask = async (req, res) => {
     ).toDateString()}.`;
 
     const activity = {
-      type: "assigned",
+      type: "Assigned",
       activity: text,
       by: user._id,
     };
@@ -263,39 +263,18 @@ export const trashTask = async (req, res) => {
 
     await task.save();
 
-    res.status(200).json({
-      status: true,
-      message: `Task trashed successfully.`,
-    });
+    res.status(200).json(new ApiResponse(201, {}, "Task delete successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while deleting the task");
   }
 };
 
-export const deleteRestoreTask = async (req, res) => {
+export const getTrashedTask = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { actionType } = req.query;
-
-    if (actionType === "delete") {
-      await Task.findByIdAndDelete(id);
-    } else if (actionType === "deleteAll") {
-      await Task.deleteMany({ isTrashed: true });
-    } else if (actionType === "restore") {
-      const resp = await Task.findById(id);
-
-      resp.isTrashed = false;
-      resp.save();
-    } else if (actionType === "restoreAll") {
-      await Task.updateMany({ isTrashed: true }, { $set: { isTrashed: false } });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: `Operation performed successfully.`,
-    });
+    const trashedTasks = await Task.find({ isTrashed: true });
+    res.status(200).json(new ApiResponse(201, trashedTasks, "Trashed tasks fetch successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while fetching trash task");
   }
 };
 
@@ -336,16 +315,16 @@ export const duplicateTask = async (req, res) => {
       task: newTask._id,
     });
 
-    res.status(200).json({ status: true, message: "Task duplicated successfully." });
+    res.status(200).json(new ApiResponse(201, newTask, "Task duplicated successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while duplicating task");
   }
 };
 
 export const postTaskActivity = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId } = req.user;
+    const { _id } = req.user;
     const { type, activity } = req.body;
 
     const task = await Task.findById(id);
@@ -353,22 +332,26 @@ export const postTaskActivity = async (req, res) => {
     const data = {
       type,
       activity,
-      by: userId,
+      by: _id,
     };
+
+    if (type == "Completed") {
+      task.stage = "completed";
+    }
 
     task.activities.push(data);
 
     await task.save();
 
-    res.status(200).json({ status: true, message: "Activity posted successfully." });
+    res.status(200).json(new ApiResponse(201, task, "Activity added successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while adding activity");
   }
 };
 
 export const dashboardStatistics = async (req, res) => {
   try {
-    const { userId, isAdmin } = req.user;
+    const { _id, isAdmin } = req.user;
 
     const allTasks = isAdmin
       ? await Task.find({
@@ -381,7 +364,7 @@ export const dashboardStatistics = async (req, res) => {
           .sort({ _id: -1 })
       : await Task.find({
           isTrashed: false,
-          team: { $all: [userId] },
+          team: { $all: [_id] },
         })
           .populate({
             path: "team",
@@ -429,13 +412,35 @@ export const dashboardStatistics = async (req, res) => {
       graphData: groupData,
     };
 
-    res.status(200).json({
-      status: true,
-      message: "Successfully",
-      ...summary,
-    });
+    res.status(200).json(new ApiResponse(200, { ...summary }, "Dashboard data fetch successfully"));
   } catch (error) {
-    console.log(error);
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while fetching dashboard data");
+  }
+};
+
+export const deleteRestoreTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { actionType } = req.query;
+    console.log(actionType);
+    if (actionType === "delete") {
+      await Task.findByIdAndDelete(id);
+    } else if (actionType === "deleteAll") {
+      await Task.deleteMany({ isTrashed: true });
+    } else if (actionType === "restore") {
+      const resp = await Task.findById(id);
+
+      resp.isTrashed = false;
+      resp.save();
+    } else if (actionType === "restoreAll") {
+      await Task.updateMany({ isTrashed: true }, { $set: { isTrashed: false } });
+    }
+
+    res.status(200).json(new ApiResponse(200, {}, "Restore and delete operation successful"));
+  } catch (error) {
+    throw new ApiError(
+      500,
+      error.message || "Something went wrong while deleting or restoring task"
+    );
   }
 };

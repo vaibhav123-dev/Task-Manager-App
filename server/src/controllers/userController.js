@@ -271,4 +271,5 @@ export const registerAdmin = async (adminUserData) => {
     });
     return new ApiResponse(200, admin, "Admin registered successfully");
   }
+  return;
 };

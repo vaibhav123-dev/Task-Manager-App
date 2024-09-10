@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { FaBug, FaTasks, FaThumbsUp, FaUser } from "react-icons/fa";
 import { GrInProgress } from "react-icons/gr";
 import {
@@ -19,14 +19,8 @@ import Tabs from "../components/Tabs";
 import { PRIOTITYSTYELS, TASK_TYPE, getInitials } from "../utils";
 import Loading from "../components/Loader";
 import Button from "../components/Button";
-import { getRequest } from "../common/apiRequest";
-
-const assets = [
-  "https://images.pexels.com/photos/2418664/pexels-photo-2418664.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/8797307/pexels-photo-8797307.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/2534523/pexels-photo-2534523.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  "https://images.pexels.com/photos/804049/pexels-photo-804049.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-];
+import { getRequest, postRequest } from "../common/apiRequest";
+import { UserContext } from "./../context/AuthContext";
 
 const ICONS = {
   high: <MdKeyboardDoubleArrowUp />,
@@ -46,33 +40,33 @@ const TABS = [
 ];
 
 const TASKTYPEICON = {
-  commented: (
+  Commented: (
     <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center text-white">
       <MdOutlineMessage />,
     </div>
   ),
-  started: (
+  Started: (
     <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
       <FaThumbsUp size={20} />
     </div>
   ),
-  assigned: (
+  Assigned: (
     <div className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-500 text-white">
       <FaUser size={14} />
     </div>
   ),
-  bug: (
+  Bug: (
     <div className="text-red-600">
       <FaBug size={24} />
     </div>
   ),
-  completed: (
+  Completed: (
     <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white">
       <MdOutlineDoneAll size={24} />
     </div>
   ),
-  "in progress": (
-    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-violet-600 text-white">
+  "In-progress": (
+    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-violet-600 text-white">
       <GrInProgress size={16} />
     </div>
   ),
@@ -91,16 +85,16 @@ const TaskDetails = () => {
   const { id } = useParams();
   const [selected, setSelected] = useState(0);
   const [task, setTask] = useState(0);
+  const { fetchTask } = useContext(UserContext);
 
   const getTask = async () => {
     const task = await getRequest("/task/" + id);
-    console.log(tasks);
     setTask(task?.data?.task);
   };
 
   useEffect(() => {
     getTask();
-  }, []);
+  }, [fetchTask]);
 
   return (
     <div className="w-full flex flex-col gap-3 mb-4 overflow-y-hidden">
@@ -242,8 +236,19 @@ const Activities = ({ activity, id }) => {
   const [selected, setSelected] = useState(act_types[0]);
   const [text, setText] = useState("");
   const isLoading = false;
+  const { loadTask } = useContext(UserContext);
 
-  const handleSubmit = async () => {};
+  const handleSubmit = async () => {
+    const data = {
+      type: selected,
+      activity: text,
+    };
+    const activityTask = await postRequest(`/task/activity/${id}`, data);
+    if (activityTask) {
+      toast.success("Activity updated successfully");
+      loadTask(true);
+    }
+  };
 
   const Card = ({ item }) => {
     return (
@@ -260,8 +265,12 @@ const Activities = ({ activity, id }) => {
         <div className="flex flex-col gap-y-1 mb-8">
           <p className="font-semibold">{item?.by?.name}</p>
           <div className="text-gray-500 space-y-2">
-            <span className="capitalize">{item?.type}</span>
-            <span className="text-sm">{moment(item?.date).fromNow()}</span>
+            <span className="capitalize  bg-orange-400 px-3 py-1 rounded-md text-black">
+              {item?.type}
+            </span>
+            <span className="text-sm ml-2  text-black font-semibold">
+              {moment(item?.date).fromNow()}
+            </span>
           </div>
           <div className="text-gray-700">{item?.activity}</div>
         </div>

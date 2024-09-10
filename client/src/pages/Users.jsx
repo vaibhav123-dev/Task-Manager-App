@@ -8,7 +8,8 @@ import clsx from "clsx";
 import ConfirmatioDialog, { UserAction } from "../components/Dialogs";
 import AddUser from "../components/AddUser";
 import { getRequest } from "../common/apiRequest";
-import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { setUsers } from "../redux/slices/teamSlice";
 
 const Users = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -16,6 +17,8 @@ const Users = () => {
   const [openAction, setOpenAction] = useState(false);
   const [selected, setSelected] = useState(null);
   const [team, setTeam] = useState([]);
+
+  const dispatch = useDispatch();
 
   const userActionHandler = () => {};
   const deleteHandler = () => {};
@@ -33,6 +36,7 @@ const Users = () => {
   const getTeam = async () => {
     const users = await getRequest("/user/get-team");
     setTeam(users?.data);
+    dispatch(setUsers(users?.data));
   };
 
   useEffect(() => {

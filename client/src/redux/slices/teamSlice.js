@@ -3,15 +3,15 @@ import { createSlice } from "@reduxjs/toolkit";
 export const teamSlice = createSlice({
   name: "team",
   initialState: {
-    team: {},
+    team: [],
   },
   reducers: {
-    setTeam: (state, action) => {
+    setUsers: (state, action) => {
       state.team = action.payload;
     },
   },
 });
 
-export const { setTeam } = teamSlice.actions;
+export const { setUsers } = teamSlice.actions;
 
 export default teamSlice.reducer;

@@ -69,7 +69,7 @@ const Sidebar = () => {
         </Link>
 
         <Link
-          to="/in-progress/in-progress"
+          to="/in progress/in progress"
           className={clsx(
             "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
             path === "in-progress" ? "bg-blue-700 text-neutral-100" : ""

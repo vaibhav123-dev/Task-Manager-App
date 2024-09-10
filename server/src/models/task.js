@@ -18,15 +18,8 @@ const taskSchema = new Schema(
       {
         type: {
           type: String,
-          default: "assigned",
-          enum: [
-            "assigned",
-            "started",
-            "in progress",
-            "bug",
-            "completed",
-            "commented",
-          ],
+          default: "Assigned",
+          enum: ["Assigned", "Started", "In-progress", "Bug", "Completed", "Commented"],
         },
         activity: String,
         date: { type: Date, default: new Date() },
