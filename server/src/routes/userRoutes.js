@@ -1,7 +1,6 @@
 import express from "express";
 import { isAdminRoute, verifyJWT } from "../middlewares/authMiddlewave.js";
 import {
-  activateUserProfile,
   changeUserPassword,
   deleteUserProfile,
   getNotificationsList,
@@ -10,6 +9,7 @@ import {
   logoutUser,
   markNotificationRead,
   registerUser,
+  updateUser,
   updateUserProfile,
 } from "../controllers/userController.js";
 import { upload } from "../middlewares/multerMiddleware.js";
@@ -24,13 +24,11 @@ router.route("/get-team").get(verifyJWT, isAdminRoute, getTeamList);
 router.route("/notifications").get(verifyJWT, getNotificationsList);
 
 router.route("/read-notifications").put(verifyJWT, markNotificationRead);
-router.route("/profile").put(verifyJWT, updateUserProfile);
+router.route("/profile/:id").put(verifyJWT, upload.single("avatar"), updateUserProfile);
 router.route("/change-password").put(verifyJWT, changeUserPassword);
 
 // ADMIN ONLY - ADMIN ROUTES
-router
-  .route("/:id")
-  .put(verifyJWT, isAdminRoute, activateUserProfile)
-  .delete(verifyJWT, isAdminRoute, deleteUserProfile);
+router.route("/:id").delete(verifyJWT, isAdminRoute, deleteUserProfile);
+router.route("/updateUser/:id").put(verifyJWT, isAdminRoute, updateUser);
 
 export default router;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Title from "../components/Title";
 import Button from "../components/Button";
 import { IoMdAdd } from "react-icons/io";
@@ -7,9 +7,11 @@ import { getInitials } from "../utils";
 import clsx from "clsx";
 import ConfirmatioDialog, { UserAction } from "../components/Dialogs";
 import AddUser from "../components/AddUser";
-import { getRequest } from "../common/apiRequest";
+import { deleteRequest, getRequest } from "../common/apiRequest";
 import { useDispatch } from "react-redux";
 import { setUsers } from "../redux/slices/teamSlice";
+import { toast } from "sonner";
+import { UserContext } from "../context/AuthContext";
 
 const Users = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -18,13 +20,19 @@ const Users = () => {
   const [selected, setSelected] = useState(null);
   const [team, setTeam] = useState([]);
   const [isAdd, setIsAdd] = useState(false);
+  const { fetchUser, loadUser } = useContext(UserContext);
 
   const dispatch = useDispatch();
 
   const userActionHandler = () => {};
-  const deleteHandler = () => {};
+  const deleteHandler = async () => {
+    const users = await deleteRequest(`user/${selected}`);
+    loadUser(true);
+    toast.success("User delete successfully");
+    setOpenDialog(false);
+  };
 
-  const deleteClick = (id) => {
+  const deleteClick = async (id) => {
     setSelected(id);
     setOpenDialog(true);
   };
@@ -42,7 +50,7 @@ const Users = () => {
 
   useEffect(() => {
     getTeam();
-  }, []);
+  }, [fetchUser]);
 
   const TableHeader = () => (
     <thead className="border-b border-gray-300">

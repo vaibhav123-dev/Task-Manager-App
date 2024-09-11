@@ -9,10 +9,12 @@ import { postRequest } from "../common/apiRequest";
 import { setUser } from "../redux/slices/userSlice";
 import { toast } from "sonner";
 import { UserContext } from "../context/AuthContext";
+import AddUser from "./AddUser";
 
 const UserAvatar = () => {
   const [open, setOpen] = useState(false);
   const [openPassword, setOpenPassword] = useState(false);
+  const [isProfileEdit, setIsProfileEdit] = useState(false);
   const { user } = useSelector((state) => state.user);
   const { logout } = useContext(UserContext);
 
@@ -32,10 +34,18 @@ const UserAvatar = () => {
       <div>
         <Menu as="div" className="relative inline-block text-left">
           <div>
-            <Menu.Button className="w-10 h-10 2xl:w-12 2xl:h-12 items-center justify-center rounded-full bg-blue-600">
-              <span className="text-white font-semibold">
-                {getInitials(user?.name)}
-              </span>
+            <Menu.Button className="w-10 h-10 2xl:w-12 2xl:h-12 flex items-center justify-center rounded-full bg-blue-600 overflow-hidden">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt="User Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-semibold">
+                  {getInitials(user?.name)}
+                </span>
+              )}
             </Menu.Button>
           </div>
 
@@ -53,23 +63,14 @@ const UserAvatar = () => {
                 <Menu.Item>
                   {({ active }) => (
                     <button
-                      onClick={() => setOpen(true)}
+                      onClick={() => {
+                        setOpen(true);
+                        setIsProfileEdit(true);
+                      }}
                       className="text-gray-700 group flex w-full items-center rounded-md px-2 py-2 text-base"
                     >
                       <FaUser className="mr-2" aria-hidden="true" />
                       Profile
-                    </button>
-                  )}
-                </Menu.Item>
-
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={() => setOpenPassword(true)}
-                      className={`tetx-gray-700 group flex w-full items-center rounded-md px-2 py-2 text-base`}
-                    >
-                      <FaUserLock className="mr-2" aria-hidden="true" />
-                      Change Password
                     </button>
                   )}
                 </Menu.Item>
@@ -90,6 +91,14 @@ const UserAvatar = () => {
           </Transition>
         </Menu>
       </div>
+
+      <AddUser
+        open={open}
+        setOpen={setOpen}
+        isProfileEdit={isProfileEdit}
+        userData={user}
+        key={new Date().getTime().toString()}
+      />
     </>
   );
 };

@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import Notice from "../models/notification.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -115,7 +116,7 @@ export const logoutUser = async (req, res) => {
 
 export const getTeamList = async (req, res) => {
   try {
-    const users = await User.find().select("name title role email isActive");
+    const users = await User.find().select("name title role email isActive isAdmin");
     res.status(201).json(new ApiResponse(201, users, "User fetched successfully"));
   } catch (error) {
     throw new ApiError(500, error.message || "Something went wrong while logout user");
@@ -166,32 +167,54 @@ export const markNotificationRead = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const { userId, isAdmin } = req.user;
-    const { _id } = req.body;
+    const { id } = req.params;
+    const { name, email, password, isAdmin, role, title, isActive } = req.body;
 
-    const id = isAdmin && userId === _id ? userId : isAdmin && userId !== _id ? _id : userId;
+    // Find the user by ID
+    let user = await User.findById(id);
 
-    const user = await User.findById(id);
-
-    if (user) {
-      user.name = req.body.name || user.name;
-      user.title = req.body.title || user.title;
-      user.role = req.body.role || user.role;
-
-      const updatedUser = await user.save();
-
-      user.password = undefined;
-
-      res.status(201).json({
-        status: true,
-        message: "Profile Updated Successfully.",
-        user: updatedUser,
-      });
-    } else {
-      res.status(404).json({ status: false, message: "User not found" });
+    if (!user) {
+      throw new ApiError(404, "User not found");
     }
+
+    // Check if email is being updated, and if the new email is already in use by another user
+    if (email && email !== user.email) {
+      const userExist = await User.findOne({ email });
+      if (userExist) {
+        throw new ApiError(400, "Email is already taken");
+      }
+      user.email = email;
+    }
+
+    if (req?.file?.path) {
+      const avatarLocalPath = req.file.path;
+
+      // Upload avatar to Cloudinary
+      const uploadedAvatar = await uploadOnCloudinary(avatarLocalPath);
+
+      if (uploadedAvatar && uploadedAvatar.url) {
+        user.avatar = uploadedAvatar.url; // Set the uploaded avatar URL
+      } else {
+        throw new ApiError(400, "Failed to upload avatar");
+      }
+    }
+
+    // Update user fields (only if provided in the request body)
+    if (name) user.name = name;
+    if (password) user.password = password; // Ensure password is hashed in User model hooks
+    if (role) user.role = role;
+    if (title) user.title = title;
+
+    // Save the updated user
+    await user.save();
+
+    // Remove password from the response
+    user = user.toObject();
+    delete user.password;
+
+    res.status(200).json(new ApiResponse(200, { user }, "User updated successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while updating profile");
   }
 };
 
@@ -220,38 +243,57 @@ export const changeUserPassword = async (req, res) => {
   }
 };
 
-export const activateUserProfile = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const user = await User.findById(id);
-
-    if (user) {
-      user.isActive = req.body.isActive; //!user.isActive
-
-      await user.save();
-
-      res.status(201).json({
-        status: true,
-        message: `User account has been ${user?.isActive ? "activated" : "disabled"}`,
-      });
-    } else {
-      res.status(404).json({ status: false, message: "User not found" });
-    }
-  } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
 export const deleteUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
 
     await User.findByIdAndDelete(id);
 
-    res.status(200).json({ status: true, message: "User deleted successfully" });
+    res.status(200).json(new ApiResponse(200, {}, "User Delete Successfully"));
   } catch (error) {
-    return res.status(400).json({ status: false, message: error.message });
+    throw new ApiError(500, error.message || "Something went wrong while deleting user");
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, password, isAdmin, role, title, isActive } = req.body;
+
+    // Find the user by ID
+    let user = await User.findById(id);
+
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    // Check if email is being updated, and if the new email is already in use by another user
+    if (email && email !== user.email) {
+      const userExist = await User.findOne({ email });
+      if (userExist) {
+        throw new ApiError(400, "Email is already taken");
+      }
+      user.email = email;
+    }
+
+    // Update user fields (only if provided in the request body)
+    if (name) user.name = name;
+    if (password) user.password = password; // Ensure password is hashed in User model hooks
+    if (typeof isAdmin === "boolean") user.isAdmin = isAdmin;
+    if (role) user.role = role;
+    if (title) user.title = title;
+    if (typeof isActive === "boolean") user.isActive = isActive;
+
+    // Save the updated user
+    await user.save();
+
+    // Remove password from the response
+    user = user.toObject();
+    delete user.password;
+
+    res.status(200).json(new ApiResponse(200, { user }, "User updated successfully"));
+  } catch (error) {
+    throw new ApiError(500, error.message || "Something went wrong while updating user");
   }
 };
 

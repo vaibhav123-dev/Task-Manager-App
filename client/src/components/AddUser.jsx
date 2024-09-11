@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import ModalWrapper from "./ModalWrapper";
@@ -7,14 +7,18 @@ import Textbox from "./Textbox";
 import Loading from "./Loader";
 import Button from "./Button";
 import SelectList from "./SelectList";
-import { postRequest } from "../common/apiRequest";
+import { postRequest, putRequest } from "../common/apiRequest";
 import { toast } from "sonner";
+import { BiImages } from "react-icons/bi";
+import { UserContext } from "../context/AuthContext";
 
 const isAdmin = ["Yes", "No"];
 
-const AddUser = ({ open, setOpen, userData, isAdd }) => {
+const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
   const { user } = useSelector((state) => state.user);
   const [admin, setAdmin] = useState(isAdmin[1]);
+  const [avatar, setAvatar] = useState([]);
+  const { loadUser } = useContext(UserContext);
 
   const {
     register,
@@ -22,6 +26,11 @@ const AddUser = ({ open, setOpen, userData, isAdd }) => {
     setValue,
     formState: { errors },
   } = useForm({});
+
+  const handleSelect = (e) => {
+    console.log(e.target.file);
+    setAvatar(e.target.files);
+  };
 
   const validateUserDetails = (data) => {
     if (data?.email === "" || data?.password === "") {
@@ -41,22 +50,51 @@ const AddUser = ({ open, setOpen, userData, isAdd }) => {
     if (isAdd) {
       const user = await postRequest("/user/register", data);
       if (!user) toast.error("Something went wrong");
-
       toast.success(`User Added Successfully  ${user?.data?.user?.name}`);
       setOpen(false);
+      loadUser(true);
+    } else if (isProfileEdit) {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("title", data.title);
+      formData.append("role", data.role);
+      formData.append("password", data.password);
+      // Add avatar if selected
+      if (avatar.length > 0) {
+        formData.append("avatar", avatar[0]); // Append the avatar file
+      }
+      const user = await putRequest(
+        `/user/profile/${userData?._id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      if (!user) toast.error("Something went wrong");
+      toast.success(`Profile Update Successfully  ${user?.data?.user?.name}`);
+      setOpen(false);
     } else {
-      //do it tommorow
+      const user = await putRequest(`/user/updateUser/${userData?._id}`, data);
+      if (!user) toast.error("Something went wrong");
+      toast.success(`User Update Successfully  ${user?.data?.user?.name}`);
+      setOpen(false);
+      loadUser(true);
     }
   };
 
   useEffect(() => {
-    if (!isAdd) {
+    if (!isAdd || isProfileEdit) {
       setValue("name", userData?.name);
       setValue("email", userData?.email);
       setValue("title", userData?.title);
       setValue("role", userData?.role);
       setValue("isActive", userData?.isActive);
-      setValue("isAdmin", userData?.isAdmin);
+      if (userData?.isAdmin) {
+        setAdmin(isAdmin[0]);
+      }
     }
   }, [userData]);
 
@@ -82,7 +120,6 @@ const AddUser = ({ open, setOpen, userData, isAdd }) => {
               })}
               error={errors.name ? errors.name.message : ""}
             />
-
             <Textbox
               placeholder="Email Address"
               type="email"
@@ -94,7 +131,6 @@ const AddUser = ({ open, setOpen, userData, isAdd }) => {
               })}
               error={errors.email ? errors.email.message : ""}
             />
-
             <Textbox
               placeholder="Password"
               type="password"
@@ -106,7 +142,6 @@ const AddUser = ({ open, setOpen, userData, isAdd }) => {
               })}
               error={errors.password ? errors.password.message : ""}
             />
-
             <div className="flex gap-4">
               <Textbox
                 placeholder="Title"
@@ -132,24 +167,43 @@ const AddUser = ({ open, setOpen, userData, isAdd }) => {
                 error={errors.role ? errors.role.message : ""}
               />
             </div>
+            {!isProfileEdit ? (
+              <div className="flex gap-4 mt-6">
+                <Textbox
+                  placeholder="Is Active"
+                  type="checkbox"
+                  name="isActive"
+                  label="Is Active"
+                  className="w-rounded"
+                  register={register("isActive")}
+                />
 
-            <div className="flex gap-4 mt-6">
-              <Textbox
-                placeholder="Is Active"
-                type="checkbox"
-                name="isActive"
-                label="Is Active"
-                className="w-rounded"
-                register={register("isActive")}
-              />
-
-              <SelectList
-                label="Is Admin"
-                lists={isAdmin}
-                selected={admin}
-                setSelected={setAdmin}
-              />
-            </div>
+                <SelectList
+                  label="Is Admin"
+                  lists={isAdmin}
+                  selected={admin}
+                  setSelected={setAdmin}
+                />
+              </div>
+            ) : (
+              <div className="w-full flex items-center justify-center mt-4 border border-gray-300 rounded-md">
+                <label
+                  className="flex items-center gap-1 text-base text-ascent-2 hover:text-ascent-1 cursor-pointer my-4"
+                  htmlFor="imgUpload"
+                >
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="imgUpload"
+                    onChange={(e) => handleSelect(e)}
+                    accept=".jpg, .png, .jpeg"
+                    multiple={false}
+                  />
+                  <BiImages />
+                  <span>Upload Image</span>
+                </label>
+              </div>
+            )}
           </div>
 
           {false ? (

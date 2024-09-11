@@ -14,7 +14,7 @@ import { setOpenSidebar } from "../redux/slices/userSlice";
 import { UserContext } from "../context/AuthContext";
 
 const Sidebar = () => {
-  const { user } = useContext(UserContext);
+  const { user } = useSelector((state) => state.user);
 
   const dispatch = useDispatch();
   const location = useLocation();
