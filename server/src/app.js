@@ -29,18 +29,18 @@ app.use(
   })
 );
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
-if (process.env.NODE_ENV === "production") {
-  // Set static folder to client/build
-  app.use(express.static(path.join(__dirname, "../client/build")));
+// if (process.env.NODE_ENV === "production") {
+//   // Set static folder to client/build
+//   app.use(express.static(path.join(__dirname, "../client/build")));
 
-  // Serve index.html for any other route that doesn't match your API
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
-  });
-}
+//   // Serve index.html for any other route that doesn't match your API
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
+//   });
+// }
 
 app.use(express.static("public"));
 
