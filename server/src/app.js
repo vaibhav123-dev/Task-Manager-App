@@ -33,12 +33,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
-  // Set static folder
-  app.use(express.static("client/build"));
+  // Set static folder to client/build
+  app.use(express.static(path.join(__dirname, "../client/build")));
 
-  // Serve index.html for any routes that don't match your API
+  // Serve index.html for any other route that doesn't match your API
   app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "client", "index.html"));
+    res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
   });
 }
 
