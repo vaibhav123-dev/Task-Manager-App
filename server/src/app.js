@@ -11,8 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://task-manager-client-gamma.vercel.app/",
-    credentials: true,
+    origin: process.env.CLIENT_URL,
   })
 );
 
