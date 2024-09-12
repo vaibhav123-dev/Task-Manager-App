@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import { errorHandler, routeNotFound } from "./middlewares/errorMiddlewaves.js";
 import routes from "./routes/index.js";
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const app = express();
 
@@ -26,6 +28,9 @@ app.use(
     limit: "16kb",
   })
 );
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 if (process.env.NODE_ENV === "production") {
   // Set static folder
