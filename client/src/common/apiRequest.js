@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://task-manager-app-chi-weld.vercel.app/api",
+  baseURL: "https://task-manager-app-umbu.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },

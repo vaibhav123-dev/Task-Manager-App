@@ -17,6 +17,7 @@ const Login = () => {
     formState: { errors },
   } = useForm();
   const { login } = useContext(UserContext);
+  const { user } = useSelector((state) => state.user);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -48,9 +49,9 @@ const Login = () => {
     navigate("/dashboard");
   };
 
-  // useEffect(() => {
-  //   // user && navigate("/dashboard");
-  // }, [user]);
+  useEffect(() => {
+    user && navigate("/dashboard");
+  }, [user]);
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center flex-col lg:flex-row bg-[#f3f4f6]">

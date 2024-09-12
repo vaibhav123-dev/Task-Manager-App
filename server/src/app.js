@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: "https://task-manager-app-1-pxhf.onrender.com",
     credentials: true,
   })
 );
