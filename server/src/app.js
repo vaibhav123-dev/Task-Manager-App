@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://task-manager-app-1-pxhf.onrender.com",
+    origin: "https://task-manager-client-gamma.vercel.app/",
     credentials: true,
   })
 );

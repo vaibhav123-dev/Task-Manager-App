@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://task-manager-app-qn3g.onrender.com/api",
+  baseURL: "https://task-manager-app-fgga.vercel.app/api",
   headers: {
     "Content-Type": "application/json",
   },
