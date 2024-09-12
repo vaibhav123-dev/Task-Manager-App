@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ModalWrapper from "./ModalWrapper";
 import { Dialog } from "@headlessui/react";
 import Textbox from "./Textbox";
@@ -11,6 +11,7 @@ import { postRequest, putRequest } from "../common/apiRequest";
 import { toast } from "sonner";
 import { BiImages } from "react-icons/bi";
 import { UserContext } from "../context/AuthContext";
+import { setUser } from "../redux/slices/userSlice";
 
 const isAdmin = ["Yes", "No"];
 
@@ -20,6 +21,8 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
   const [avatar, setAvatar] = useState([]);
   const { loadUser } = useContext(UserContext);
 
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
@@ -28,7 +31,6 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
   } = useForm({});
 
   const handleSelect = (e) => {
-    console.log(e.target.file);
     setAvatar(e.target.files);
   };
 
@@ -75,6 +77,7 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
       );
       if (!user) toast.error("Something went wrong");
       toast.success(`Profile Update Successfully  ${user?.data?.user?.name}`);
+      dispatch(setUser(user?.data?.user));
       setOpen(false);
     } else {
       const user = await putRequest(`/user/updateUser/${userData?._id}`, data);

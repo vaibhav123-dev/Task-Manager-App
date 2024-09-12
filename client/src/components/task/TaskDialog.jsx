@@ -12,12 +12,14 @@ import ConfirmatioDialog from "../Dialogs";
 import { postRequest, putRequest } from "../../common/apiRequest";
 import { toast } from "sonner";
 import { UserContext } from "../../context/AuthContext";
+import { useSelector } from "react-redux";
 
-const TaskDialog = ({ task, isAdmin }) => {
+const TaskDialog = ({ task }) => {
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const { loadTask } = useContext(UserContext);
+  const { user } = useSelector((state) => state.user);
 
   const navigate = useNavigate();
 
@@ -96,7 +98,7 @@ const TaskDialog = ({ task, isAdmin }) => {
           >
             <Menu.Items className="absolute p-4 right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
               <div className="px-1 py-1 space-y-2">
-                {(isAdmin ? adminItems : nonAdminItems).map((el) => (
+                {(user?.isAdmin ? adminItems : nonAdminItems).map((el) => (
                   <Menu.Item key={el.label}>
                     {({ active }) => (
                       <button
@@ -113,7 +115,7 @@ const TaskDialog = ({ task, isAdmin }) => {
                 ))}
               </div>
 
-              {isAdmin ? (
+              {user?.isAdmin ? (
                 <div className="px-1 py-1">
                   <Menu.Item>
                     {({ active }) => (

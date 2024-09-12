@@ -9,7 +9,6 @@ import { mongoose } from "mongoose";
 export const createTask = async (req, res) => {
   try {
     const user = req.user;
-    // console.log(req.body, req.files);
 
     const { title, team, stage, date, priority } = req.body;
 
@@ -38,7 +37,7 @@ export const createTask = async (req, res) => {
 
     let text = "New task has been assigned to you";
     if (team?.length > 1) {
-      text = text + ` and ${team?.length - 1} others.`;
+      text = text;
     }
 
     text =
@@ -220,7 +219,7 @@ export const updateTask = async (req, res) => {
     // Update the activity
     let text = `Task "${task.title}" has been updated`;
     if (team?.length > 1) {
-      text = text + ` and assigned to ${team?.length} members.`;
+      text = text;
     }
 
     text += ` The task priority is updated to ${priority} priority and the new date is ${new Date(
@@ -439,7 +438,6 @@ export const deleteRestoreTask = async (req, res) => {
   try {
     const { id } = req.params;
     const { actionType } = req.query;
-    console.log(actionType);
     if (actionType === "delete") {
       await Task.findByIdAndDelete(id);
     } else if (actionType === "deleteAll") {

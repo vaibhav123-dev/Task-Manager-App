@@ -143,7 +143,6 @@ export const markNotificationRead = async (req, res) => {
     const { _id } = req.user;
 
     const { isReadType, id } = req.query;
-    console.log(isReadType, id);
 
     if (isReadType === "all") {
       await Notice.updateMany(

@@ -23,7 +23,7 @@ const ICONS = {
 };
 
 const TaskCard = ({ task }) => {
-  const { user } = useContext(UserContext);
+  const { user } = useSelector((state) => state.user);
   const [open, setOpen] = useState(false);
 
   return (
