@@ -38,7 +38,7 @@ if (process.env.NODE_ENV === "production") {
 
   // Serve index.html for any routes that don't match your API
   app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+    res.sendFile(path.resolve(__dirname, "client", "index.html"));
   });
 }
 
