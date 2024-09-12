@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import Title from "../components/Title";
 import Button from "../components/Button";
 import { IoMdAdd } from "react-icons/io";
-import { summary } from "../assets/data";
 import { getInitials } from "../utils";
 import clsx from "clsx";
 import ConfirmatioDialog, { UserAction } from "../components/Dialogs";
@@ -24,12 +23,13 @@ const Users = () => {
 
   const dispatch = useDispatch();
 
-  const userActionHandler = () => {};
   const deleteHandler = async () => {
-    const users = await deleteRequest(`user/${selected}`);
-    loadUser(true);
-    toast.success("User delete successfully");
-    setOpenDialog(false);
+    if (selected) {
+      await deleteRequest(`user/${selected}`);
+      loadUser(true);
+      toast.success("User deleted successfully");
+      setOpenDialog(false);
+    }
   };
 
   const deleteClick = async (id) => {
@@ -158,11 +158,7 @@ const Users = () => {
         onClick={deleteHandler}
       />
 
-      <UserAction
-        open={openAction}
-        setOpen={setOpenAction}
-        onClick={userActionHandler}
-      />
+      <UserAction open={openAction} setOpen={setOpenAction} />
     </>
   );
 };
