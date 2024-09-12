@@ -32,6 +32,7 @@ const TASK_TYPE = {
 const Tasks = () => {
   const { tasks } = useSelector((state) => state.tasks);
   const { fetchTask } = useContext(UserContext);
+  const { user } = useSelector((state) => state.user);
   const params = useParams();
   const dispatch = useDispatch();
 
@@ -59,7 +60,7 @@ const Tasks = () => {
       <div className="flex items-center justify-between mb-4">
         <Title title={status ? `${status} Tasks` : "Tasks"} />
 
-        {!status && (
+        {!status && user?.isAdmin && (
           <Button
             onClick={() => setOpen(true)}
             label="Create Task"

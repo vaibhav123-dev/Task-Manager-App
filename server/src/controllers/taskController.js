@@ -80,6 +80,7 @@ export const createTask = async (req, res) => {
 export const getTasks = async (req, res) => {
   try {
     const { stage, isTrashed } = req.query;
+    const { _id } = req.user;
 
     let query = { isTrashed: isTrashed ? true : false };
 
@@ -87,12 +88,28 @@ export const getTasks = async (req, res) => {
       query.stage = stage;
     }
 
-    let queryResult = Task.find(query)
-      .populate({
-        path: "team",
-        select: "name title email",
-      })
-      .sort({ _id: -1 });
+    const user = await User.findById(_id);
+
+    // Determine the query based on admin status
+    let queryResult;
+    if (user?.isAdmin) {
+      // If admin, fetch all tasks
+      queryResult = Task.find(query)
+        .populate({
+          path: "team",
+          select: "name title email",
+        })
+        .sort({ _id: -1 });
+    } else {
+      // If not admin, fetch tasks where the user is part of the team
+      query.team = _id; // Only include tasks where the user is part of the team
+      queryResult = Task.find(query)
+        .populate({
+          path: "team",
+          select: "name title email",
+        })
+        .sort({ _id: -1 });
+    }
 
     const tasks = await queryResult;
 

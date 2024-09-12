@@ -13,7 +13,7 @@ import { postRequest, putRequest } from "../../common/apiRequest";
 import { toast } from "sonner";
 import { UserContext } from "../../context/AuthContext";
 
-const TaskDialog = ({ task }) => {
+const TaskDialog = ({ task, isAdmin }) => {
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -46,7 +46,7 @@ const TaskDialog = ({ task }) => {
 
   const deleteHandler = () => {};
 
-  const items = [
+  const adminItems = [
     {
       label: "Open Task",
       icon: <AiTwotoneFolderOpen className="mr-2 h-5 w-5" aria-hidden="true" />,
@@ -69,6 +69,14 @@ const TaskDialog = ({ task }) => {
     },
   ];
 
+  const nonAdminItems = [
+    {
+      label: "Open Task",
+      icon: <AiTwotoneFolderOpen className="mr-2 h-5 w-5" aria-hidden="true" />,
+      onClick: () => navigate(`/task/${task._id}`),
+    },
+  ];
+
   return (
     <>
       <div>
@@ -88,7 +96,7 @@ const TaskDialog = ({ task }) => {
           >
             <Menu.Items className="absolute p-4 right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
               <div className="px-1 py-1 space-y-2">
-                {items.map((el) => (
+                {(isAdmin ? adminItems : nonAdminItems).map((el) => (
                   <Menu.Item key={el.label}>
                     {({ active }) => (
                       <button
@@ -105,24 +113,28 @@ const TaskDialog = ({ task }) => {
                 ))}
               </div>
 
-              <div className="px-1 py-1">
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={deleteClicks}
-                      className={`${
-                        active ? "bg-blue-500 text-white" : "text-red-900"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                    >
-                      <RiDeleteBin6Line
-                        className="mr-2 h-5 w-5 text-red-400"
-                        aria-hidden="true"
-                      />
-                      Delete
-                    </button>
-                  )}
-                </Menu.Item>
-              </div>
+              {isAdmin ? (
+                <div className="px-1 py-1">
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={deleteClicks}
+                        className={`${
+                          active ? "bg-blue-500 text-white" : "text-red-900"
+                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                      >
+                        <RiDeleteBin6Line
+                          className="mr-2 h-5 w-5 text-red-400"
+                          aria-hidden="true"
+                        />
+                        Delete
+                      </button>
+                    )}
+                  </Menu.Item>
+                </div>
+              ) : (
+                <div></div>
+              )}
             </Menu.Items>
           </Transition>
         </Menu>

@@ -23,7 +23,7 @@ const ICONS = {
 };
 
 const TaskCard = ({ task }) => {
-  const { user } = useContext(UserContext); 
+  const { user } = useContext(UserContext);
   const [open, setOpen] = useState(false);
 
   return (
@@ -40,7 +40,7 @@ const TaskCard = ({ task }) => {
             <span className="uppercase">{task?.priority} Priority</span>
           </div>
 
-          {user?.isAdmin && <TaskDialog task={task} />}
+          <TaskDialog task={task} isAdmin={user?.isAdmin} />
         </div>
 
         <>

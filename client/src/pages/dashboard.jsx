@@ -80,15 +80,17 @@ const TaskTable = ({ tasks }) => {
   );
   return (
     <>
-      <div className="w-full md:w-2/3 bg-white px-2 md:px-4 pt-4 pb-4 shadow-md rounded">
-        <table className="w-full">
-          <TableHeader />
-          <tbody>
-            {tasks?.map((task, id) => (
-              <TableRow key={id} task={task} />
-            ))}
-          </tbody>
-        </table>
+      <div className="w-full  bg-white px-2 md:px-4 pt-4 pb-4 shadow-md rounded">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <TableHeader />
+            <tbody>
+              {tasks?.map((task, id) => (
+                <TableRow key={id} task={task} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
@@ -149,6 +151,7 @@ const UserTable = ({ users }) => {
 
 const Dashboard = () => {
   const { dashboard } = useSelector((state) => state.dashboard);
+  const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const stats = [
@@ -236,7 +239,7 @@ const Dashboard = () => {
 
         {/* /right */}
 
-        <UserTable users={dashboard?.users} />
+        {user?.isAdmin && <UserTable users={dashboard?.users} />}
       </div>
     </div>
   );
