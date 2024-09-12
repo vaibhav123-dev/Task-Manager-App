@@ -38,6 +38,8 @@ const Login = () => {
 
     if (!user) toast.error("Something went wrong");
 
+    navigate("/dashboard");
+
     toast.success(`Welcome  ${user?.data?.user?.name}`);
 
     dispatch(setUser(user?.data?.user));
@@ -45,13 +47,7 @@ const Login = () => {
     login(user?.data?.user);
 
     localStorage.setItem("token", user?.data?.token);
-
-    navigate("/dashboard");
   };
-
-  useEffect(() => {
-    user && navigate("/dashboard");
-  }, []);
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center flex-col lg:flex-row bg-[#f3f4f6]">

@@ -43,7 +43,7 @@ const UserAvatar = () => {
                 />
               ) : (
                 <span className="text-white font-semibold">
-                  {getInitials(user?.name)}
+                  {user ? getInitials(user?.name) : ""}
                 </span>
               )}
             </Menu.Button>
