@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:8000",
+    origin: "https://task-manager-app-h65o.vercel.app",
     credentials: true,
   })
 );
