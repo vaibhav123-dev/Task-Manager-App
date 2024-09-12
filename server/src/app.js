@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errorHandler, routeNotFound } from "./middlewares/errorMiddlewaves.js";
 import routes from "./routes/index.js";
+import path from "path";
 
 const app = express();
 
@@ -27,8 +28,6 @@ app.use(
 );
 
 if (process.env.NODE_ENV === "production") {
-  const path = require("path");
-
   // Set static folder
   app.use(express.static("client/build"));
 
