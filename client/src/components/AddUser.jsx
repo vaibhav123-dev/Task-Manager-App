@@ -19,6 +19,7 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
   const { user } = useSelector((state) => state.user);
   const [admin, setAdmin] = useState(isAdmin[1]);
   const [avatar, setAvatar] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { loadUser } = useContext(UserContext);
 
   const dispatch = useDispatch();
@@ -44,47 +45,58 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
   };
 
   const handleOnSubmit = async (data) => {
+    setIsLoading(true); // Set loading state to true
+
     validateUserDetails();
 
     if (admin == "Yes") data.isAdmin = true;
     else data.isAdmin = false;
 
-    if (isAdd) {
-      const user = await postRequest("/user/register", data);
-      if (!user) toast.error("Something went wrong");
-      toast.success(`User Added Successfully  ${user?.data?.user?.name}`);
-      setOpen(false);
-      loadUser(true);
-    } else if (isProfileEdit) {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("email", data.email);
-      formData.append("title", data.title);
-      formData.append("role", data.role);
-      formData.append("password", data.password);
-      // Add avatar if selected
-      if (avatar.length > 0) {
-        formData.append("avatar", avatar[0]); // Append the avatar file
-      }
-      const user = await putRequest(
-        `/user/profile/${userData?._id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+    try {
+      if (isAdd) {
+        const user = await postRequest("/user/register", data);
+        if (!user) toast.error("Something went wrong");
+        toast.success(`User Added Successfully  ${user?.data?.user?.name}`);
+        setOpen(false);
+        loadUser(true);
+      } else if (isProfileEdit) {
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("email", data.email);
+        formData.append("title", data.title);
+        formData.append("role", data.role);
+        formData.append("password", data.password);
+        // Add avatar if selected
+        if (avatar.length > 0) {
+          formData.append("avatar", avatar[0]); // Append the avatar file
         }
-      );
-      if (!user) toast.error("Something went wrong");
-      toast.success(`Profile Update Successfully  ${user?.data?.user?.name}`);
-      dispatch(setUser(user?.data?.user));
-      setOpen(false);
-    } else {
-      const user = await putRequest(`/user/updateUser/${userData?._id}`, data);
-      if (!user) toast.error("Something went wrong");
-      toast.success(`User Update Successfully  ${user?.data?.user?.name}`);
-      setOpen(false);
-      loadUser(true);
+        const user = await putRequest(
+          `/user/profile/${userData?._id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        if (!user) toast.error("Something went wrong");
+        toast.success(`Profile Update Successfully  ${user?.data?.user?.name}`);
+        dispatch(setUser(user?.data?.user));
+        setOpen(false);
+      } else {
+        const user = await putRequest(
+          `/user/updateUser/${userData?._id}`,
+          data
+        );
+        if (!user) toast.error("Something went wrong");
+        toast.success(`User Update Successfully  ${user?.data?.user?.name}`);
+        setOpen(false);
+        loadUser(true);
+      }
+    } catch (error) {
+      toast.error("Request failed!");
+    } finally {
+      setIsLoading(false); // Set loading state to false when request completes
     }
   };
 
@@ -103,8 +115,18 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
 
   return (
     <>
+      {/* Loader with blue overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-75">
+          <Loading />
+        </div>
+      )}
+
       <ModalWrapper open={open} setOpen={setOpen}>
-        <form onSubmit={handleSubmit(handleOnSubmit)} className="">
+        <form
+          onSubmit={handleSubmit(handleOnSubmit)}
+          className={`${isLoading ? "pointer-events-none opacity-50" : ""}`} // Disable form interaction and fade it during loading
+        >
           <Dialog.Title
             as="h2"
             className="text-base font-bold leading-6 text-gray-900 mb-4"
@@ -209,26 +231,21 @@ const AddUser = ({ open, setOpen, userData, isAdd, isProfileEdit }) => {
             )}
           </div>
 
-          {false ? (
-            <div className="py-5">
-              <Loading />
-            </div>
-          ) : (
-            <div className="py-3 mt-4 sm:flex sm:flex-row-reverse">
-              <Button
-                type="submit"
-                className="bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-700  sm:w-auto"
-                label="Submit"
-              />
-
-              <Button
-                type="button"
-                className="bg-white px-5 text-sm font-semibold text-gray-900 sm:w-auto"
-                onClick={() => setOpen(false)}
-                label="Cancel"
-              />
-            </div>
-          )}
+          <div className="py-3 mt-4 sm:flex sm:flex-row-reverse">
+            <Button
+              type="submit"
+              className="bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-700 sm:w-auto"
+              label="Submit"
+              disabled={isLoading} // Disable button during loading
+            />
+            <Button
+              type="button"
+              className="bg-white px-5 text-sm font-semibold text-gray-900 sm:w-auto"
+              onClick={() => setOpen(false)}
+              label="Cancel"
+              disabled={isLoading} // Disable button during loading
+            />
+          </div>
         </form>
       </ModalWrapper>
     </>

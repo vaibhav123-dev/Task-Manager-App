@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import Textbox from "../components/Textbox";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { postRequest } from "../common/apiRequest";
 import { setUser } from "../redux/slices/userSlice";
 import { UserContext } from "../context/AuthContext.jsx";
+import Loading from "./../components/Loader";
 
 const Login = () => {
   const {
@@ -19,6 +20,8 @@ const Login = () => {
   const { login } = useContext(UserContext);
   const { user } = useSelector((state) => state.user);
 
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -26,7 +29,7 @@ const Login = () => {
     if (data?.email === "" || data?.password === "") {
       return toast.warning("Please fill in the required fields");
     }
-    if (data?.email && !validateEmail(formData?.email)) {
+    if (data?.email && !validateEmail(data?.email)) {
       return toast.error("Invalid Email Address");
     }
   };
@@ -34,29 +37,37 @@ const Login = () => {
   const submitHandler = async (data) => {
     validateUserDetails();
 
+    setIsLoading(true); // Start loading
+
     const user = await postRequest("/user/login", data);
 
-    if (!user) toast.error("Something went wrong");
+    if (!user) {
+      toast.error("Something went wrong");
+      setIsLoading(false); // Stop loading
+      return;
+    }
 
     navigate("/dashboard");
 
-    toast.success(`Welcome  ${user?.data?.user?.name}`);
+    toast.success(`Welcome ${user?.data?.user?.name}`);
 
     dispatch(setUser(user?.data?.user));
 
     login(user?.data?.user);
 
     localStorage.setItem("token", user?.data?.token);
+
+    setIsLoading(false); // Stop loading
   };
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center flex-col lg:flex-row bg-[#f3f4f6]">
       <div className="w-full md:w-auto flex gap-0 md:gap-40 flex-col md:flex-row items-center justify-center">
-        {/* left side */}
+        {/* Left side */}
         <div className="h-full w-full lg:w-2/3 flex flex-col items-center justify-center">
           <div className="w-full md:max-w-lg 2xl:max-w-3xl flex flex-col items-center justify-center gap-5 md:gap-y-10 2xl:-mt-20">
             <span className="flex gap-1 py-1 px-3 border rounded-full text-sm md:text-base bordergray-300 text-gray-600">
-              Manage all your task in one place!
+              Manage all your tasks in one place!
             </span>
             <p className="flex flex-col gap-0 md:gap-4 text-4xl md:text-6xl 2xl:text-7xl font-black text-center text-blue-700">
               <span>Cloud-Based</span>
@@ -69,7 +80,7 @@ const Login = () => {
           </div>
         </div>
 
-        {/* right side */}
+        {/* Right side */}
         <div className="w-full md:w-1/3 p-4 md:p-1 flex flex-col justify-center items-center">
           <form
             onSubmit={handleSubmit(submitHandler)}
@@ -107,9 +118,17 @@ const Login = () => {
 
               <Button
                 type="submit"
-                label="Submit"
+                label={isLoading ? "Submitting..." : "Submit"}
                 className="w-full h-10 bg-blue-700 text-white rounded-full"
+                disabled={isLoading}
               />
+
+              {/* Optional: Loader overlay */}
+              {isLoading && (
+                <div className="absolute inset-0 bg-blue-500 bg-opacity-50 flex items-center justify-center">
+                  <Loading />
+                </div>
+              )}
             </div>
           </form>
         </div>

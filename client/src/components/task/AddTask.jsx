@@ -10,6 +10,7 @@ import Button from "../Button";
 import { postRequest, putRequest } from "../../common/apiRequest";
 import { toast } from "sonner";
 import { UserContext } from "../../context/AuthContext";
+import Loading from "../Loader";
 
 const LISTS = ["TODO", "IN PROGRESS", "COMPLETED"];
 const PRIORITY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
@@ -27,13 +28,13 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
   const [stage, setStage] = useState(LISTS[0]);
   const [priority, setPriority] = useState(PRIORITY[2]);
   const [assets, setAssets] = useState([]);
-  const [uploading, setUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loader state
   const { loadTask } = useContext(UserContext);
 
   const submitHandler = async (data) => {
-    const formData = new FormData();
+    setIsLoading(true); // Show loader on form submission
 
-    // Append the other data fields
+    const formData = new FormData();
     formData.append("stage", stage);
     formData.append("title", data?.title);
     formData.append("priority", priority);
@@ -41,11 +42,9 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
     formData.append("date", data?.date);
 
     const assetArray = Array.from(assets);
-
-    // Append each file in the 'assets' array individually
     if (assetArray && assetArray?.length > 0) {
-      assetArray.forEach((file, index) => {
-        formData.append("assets", file); // 'assets' should match your multer field name
+      assetArray.forEach((file) => {
+        formData.append("assets", file);
       });
     }
 
@@ -74,7 +73,9 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
         toast.success("Task created successfully");
       }
     }
+
     loadTask(true);
+    setIsLoading(false); // Hide loader after request completion
   };
 
   const handleSelect = (e) => {
@@ -84,19 +85,29 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
   useEffect(() => {
     if (task) {
       setValue("title", task.title);
-      setValue("date", task.date?.split("T")[0]); // Assuming date is in ISO format
+      setValue("date", task.date?.split("T")[0]);
       setPriority(task.priority?.toUpperCase());
       setStage(task.stage?.toUpperCase());
       setAssets(task.assets || []);
     } else {
-      reset(); // Reset form when no task is provided
+      reset();
     }
   }, [task, setValue, reset]);
 
   return (
     <>
       <ModalWrapper open={open} setOpen={setOpen}>
-        <form onSubmit={handleSubmit(submitHandler)}>
+        {/* Loader on top with blue background */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center z-50">
+            <Loading />
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit(submitHandler)}
+          className={`${isLoading ? "pointer-events-none opacity-50" : ""}`}
+        >
           <Dialog.Title
             as="h2"
             className="text-base font-bold leading-6 text-gray-900 mb-4"
@@ -168,17 +179,14 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
             </div>
 
             <div className="bg-gray-50 py-6 sm:flex sm:flex-row-reverse gap-4">
-              {uploading ? (
-                <span className="text-sm py-2 text-red-500">
-                  Uploading assets
-                </span>
-              ) : (
-                <Button
-                  label="Submit"
-                  type="submit"
-                  className="bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-700  sm:w-auto"
-                />
-              )}
+              <Button
+                label="Submit"
+                type="submit"
+                className={`bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-700  sm:w-auto ${
+                  isLoading && "opacity-50 pointer-events-none"
+                }`}
+                disabled={isLoading}
+              />
 
               <Button
                 type="button"

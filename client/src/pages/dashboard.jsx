@@ -30,7 +30,7 @@ const TaskTable = ({ tasks }) => {
         <th className="py-2">Task Title</th>
         <th className="py-2">Priority</th>
         <th className="py-2">Team</th>
-        <th className="py-2 hidden md:block">Created At</th>
+        <th className="py-2 hidden md:block">Date</th>
       </tr>
     </thead>
   );
@@ -102,7 +102,7 @@ const UserTable = ({ users }) => {
       <tr className="text-black  text-left">
         <th className="py-2">Full Name</th>
         <th className="py-2">Status</th>
-        <th className="py-2">Created At</th>
+        <th className="py-2">Date</th>
       </tr>
     </thead>
   );
