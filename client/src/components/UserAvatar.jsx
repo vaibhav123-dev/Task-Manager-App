@@ -39,7 +39,7 @@ const UserAvatar = () => {
                 <img
                   src={user.avatar}
                   alt="User Avatar"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                 />
               ) : (
                 <span className="text-white font-semibold">

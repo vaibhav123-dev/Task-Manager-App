@@ -10,7 +10,6 @@ import {
 import Title from "../components/Title";
 import Button from "../components/Button";
 import { PRIOTITYSTYELS, TASK_TYPE } from "../utils";
-import AddUser from "../components/AddUser";
 import ConfirmatioDialog from "../components/Dialogs";
 import { deleteRequest, getRequest } from "../common/apiRequest";
 import { toast } from "sonner";
@@ -32,7 +31,7 @@ const Trash = () => {
 
   const deleteAllClick = () => {
     setType("deleteAll");
-    setMsg("Do you want to permenantly delete all items?");
+    setMsg("Do you want to permanently delete all items?");
     setOpenDialog(true);
   };
 
@@ -68,7 +67,7 @@ const Trash = () => {
 
   const TableHeader = () => (
     <thead className="border-b border-gray-300">
-      <tr className="text-black  text-left">
+      <tr className="text-black text-left">
         <th className="py-2">Task Title</th>
         <th className="py-2">Priority</th>
         <th className="py-2">Stage</th>
@@ -134,36 +133,41 @@ const Trash = () => {
         <div className="flex items-center justify-between mb-8">
           <Title title="Trashed Tasks" />
 
-          <div className="flex gap-2 md:gap-4 items-center">
-            <Button
-              label="Restore All"
-              icon={<MdOutlineRestore className="text-lg hidden md:flex" />}
-              className="flex flex-row-reverse gap-1 items-center  text-black text-sm md:text-base rounded-md 2xl:py-2.5"
-              onClick={restoreAllClick}
-            />
-            <Button
-              label="Delete All"
-              icon={<MdDelete className="text-lg hidden md:flex" />}
-              className="flex flex-row-reverse gap-1 items-center  text-red-600 text-sm md:text-base rounded-md 2xl:py-2.5"
-              onClick={deleteAllClick}
-            />
-          </div>
+          {trashTaskList.length > 0 && (
+            <div className="flex gap-2 md:gap-4 items-center">
+              <Button
+                label="Restore All"
+                icon={<MdOutlineRestore className="text-lg hidden md:flex" />}
+                className="flex flex-row-reverse gap-1 items-center  text-black text-sm md:text-base rounded-md 2xl:py-2.5"
+                onClick={restoreAllClick}
+              />
+              <Button
+                label="Delete All"
+                icon={<MdDelete className="text-lg hidden md:flex" />}
+                className="flex flex-row-reverse gap-1 items-center  text-red-600 text-sm md:text-base rounded-md 2xl:py-2.5"
+                onClick={deleteAllClick}
+              />
+            </div>
+          )}
         </div>
+
         <div className="bg-white px-2 md:px-6 py-4 shadow-md rounded">
-          <div className="overflow-x-auto">
-            <table className="w-full mb-5">
-              <TableHeader />
-              <tbody>
-                {trashTaskList?.map((tk, id) => (
-                  <TableRow key={id} item={tk} />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {trashTaskList.length === 0 ? (
+            <p className="text-center text-gray-500 py-5">No task found</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full mb-5">
+                <TableHeader />
+                <tbody>
+                  {trashTaskList?.map((tk, id) => (
+                    <TableRow key={id} item={tk} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* <AddUser open={open} setOpen={setOpen} /> */}
 
       <ConfirmatioDialog
         open={openDialog}
