@@ -46,7 +46,10 @@ const TaskCard = ({ task }) => {
         <>
           <div className="flex items-center gap-2">
             <div
-              className={clsx("w-4 h-4 rounded-full", TASK_TYPE[task.stage])}
+              className={clsx(
+                "w-4 h-4 rounded-full flex-shrink-0",
+                TASK_TYPE[task.stage]
+              )}
             />
             <h4 className="line-clamp-1 text-black">{task?.title}</h4>
           </div>
