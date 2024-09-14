@@ -66,50 +66,65 @@ const Trash = () => {
   };
 
   const TableHeader = () => (
-    <thead className="border-b border-gray-300">
-      <tr className="text-black text-left">
-        <th className="py-2">Task Title</th>
-        <th className="py-2">Priority</th>
-        <th className="py-2">Stage</th>
-        <th className="py-2 line-clamp-1">Modified On</th>
+    <thead className="border-b border-gray-300 dark:border-gray-600">
+      <tr className="text-black dark:text-white text-center hover:bg-gray-200 dark:hover:bg-gray-700">
+        <th scope="col" className="py-2">
+          Task Title
+        </th>
+        <th scope="col" className="py-2">
+          Priority
+        </th>
+        <th scope="col" className="py-2">
+          Stage
+        </th>
+        <th scope="col" className="py-2 line-clamp-1">
+          Modified On
+        </th>
       </tr>
     </thead>
   );
 
   const TableRow = ({ item }) => (
-    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10">
+    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
       <td className="py-2">
         <div className="flex items-center gap-2">
           <div
             className={clsx("w-4 h-4 rounded-full", TASK_TYPE[item.stage])}
           />
-          <p className="w-full line-clamp-2 text-base text-black">
+          <p className="w-full line-clamp-2 text-base text-black dark:text-gray-200">
             {item?.title}
           </p>
         </div>
       </td>
 
       <td className="py-2 capitalize">
-        <div className={"flex gap-1 items-center"}>
+        <div className="flex gap-1 items-center">
           <span className={clsx("text-lg", PRIOTITYSTYELS[item?.priority])}>
             {ICONS[item?.priority]}
           </span>
-          <span className="">{item?.priority}</span>
+          <span className="dark:text-gray-200">{item?.priority}</span>
         </div>
       </td>
 
-      <td className="py-2 capitalize text-center md:text-start">
+      <td className="py-2 capitalize text-center md:text-start dark:text-gray-300">
         {item?.stage}
       </td>
-      <td className="py-2 text-sm">{new Date(item?.date).toDateString()}</td>
+
+      <td className="py-2 text-sm dark:text-gray-300">
+        {new Date(item?.date).toDateString()}
+      </td>
 
       <td className="py-2 flex gap-1 justify-end">
         <Button
-          icon={<MdOutlineRestore className="text-xl text-gray-500" />}
+          aria-label="Restore Task"
+          icon={
+            <MdOutlineRestore className="text-xl text-gray-500 dark:text-white" />
+          }
           onClick={() => restoreClick(item._id)}
         />
         <Button
-          icon={<MdDelete className="text-xl text-red-600" />}
+          aria-label="Delete Task"
+          icon={<MdDelete className="text-xl text-red-600 dark:text-red-500" />}
           onClick={() => deleteClick(item._id)}
         />
       </td>
@@ -138,22 +153,24 @@ const Trash = () => {
               <Button
                 label="Restore All"
                 icon={<MdOutlineRestore className="text-lg hidden md:flex" />}
-                className="flex flex-row-reverse gap-1 items-center  text-black text-sm md:text-base rounded-md 2xl:py-2.5"
+                className="flex flex-row-reverse gap-1 items-center text-black dark:text-white text-sm md:text-base rounded-md 2xl:py-2.5"
                 onClick={restoreAllClick}
               />
               <Button
                 label="Delete All"
                 icon={<MdDelete className="text-lg hidden md:flex" />}
-                className="flex flex-row-reverse gap-1 items-center  text-red-600 text-sm md:text-base rounded-md 2xl:py-2.5"
+                className="flex flex-row-reverse gap-1 items-center text-red-600 dark:text-red-500 text-sm md:text-base rounded-md 2xl:py-2.5"
                 onClick={deleteAllClick}
               />
             </div>
           )}
         </div>
 
-        <div className="bg-white px-2 md:px-6 py-4 shadow-md rounded">
+        <div className="bg-white dark:bg-gray-800 px-2 md:px-6 py-4 shadow-md rounded">
           {trashTaskList.length === 0 ? (
-            <p className="text-center text-gray-500 py-5">No task found</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 py-5">
+              No task found
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full mb-5">

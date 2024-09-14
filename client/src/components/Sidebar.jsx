@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   MdDashboard,
   MdOutlineAddTask,
@@ -12,9 +12,11 @@ import { Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { setOpenSidebar } from "../redux/slices/userSlice";
 import { UserContext } from "../context/AuthContext";
+import { Toggle } from "rsuite";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.user);
+  const [isDark, setIsDark] = useState(false);
 
   const dispatch = useDispatch();
   const location = useLocation();
@@ -25,20 +27,28 @@ const Sidebar = () => {
     dispatch(setOpenSidebar(false));
   };
 
+  const handleMode = () => {
+    setIsDark(!isDark);
+    console.log(isDark);
+    document.body.classList.toggle("dark");
+  };
+
   return (
-    <div className="w-full  h-full flex flex-col gap-6 p-5">
+    <div className="w-full h-full flex flex-col gap-6 p-5 bg-white dark:bg-gray-800">
       <h1 className="flex gap-1 items-center">
         <p className="bg-blue-600 p-2 rounded-full">
           <MdOutlineAddTask className="text-white text-2xl font-black" />
         </p>
-        <span className="text-2xl font-bold text-black">Task Manager</span>
+        <span className="text-2xl font-bold text-black dark:text-white">
+          Task Manager
+        </span>
       </h1>
 
       <div className="flex-1 flex flex-col gap-y-5 py-8">
         <Link
           to="/dashboard"
           className={clsx(
-            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
             path === "dashboard" ? "bg-blue-700 text-neutral-100" : ""
           )}
         >
@@ -49,7 +59,7 @@ const Sidebar = () => {
         <Link
           to="/tasks"
           className={clsx(
-            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
             path === "tasks" ? "bg-blue-700 text-neutral-100" : ""
           )}
         >
@@ -60,7 +70,7 @@ const Sidebar = () => {
         <Link
           to="/completed/completed"
           className={clsx(
-            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
             path === "completed" ? "bg-blue-700 text-neutral-100" : ""
           )}
         >
@@ -71,7 +81,7 @@ const Sidebar = () => {
         <Link
           to="/in progress/in progress"
           className={clsx(
-            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
             path === "in-progress" ? "bg-blue-700 text-neutral-100" : ""
           )}
         >
@@ -82,7 +92,7 @@ const Sidebar = () => {
         <Link
           to="/todo/todo"
           className={clsx(
-            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+            "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
             path === "todo" ? "bg-blue-700 text-neutral-100" : ""
           )}
         >
@@ -95,7 +105,7 @@ const Sidebar = () => {
             <Link
               to="/team"
               className={clsx(
-                "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+                "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
                 path === "team" ? "bg-blue-700 text-neutral-100" : ""
               )}
             >
@@ -106,7 +116,7 @@ const Sidebar = () => {
             <Link
               to="/trashed"
               className={clsx(
-                "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 text-base hover:bg-[#2564ed2d]",
+                "w-full lg:w-3/4 flex gap-2 px-3 py-2 rounded-full items-center text-gray-800 dark:text-gray-200 text-base hover:bg-[#2564ed2d] dark:hover:bg-[#1e3a8a40]",
                 path === "trashed" ? "bg-blue-700 text-neutral-100" : ""
               )}
             >
@@ -118,9 +128,15 @@ const Sidebar = () => {
       </div>
 
       <div className="">
-        <button className="w-full flex gap-2 p-2 items-center text-lg text-gray-800">
-          <MdSettings />
-          <span>Settings</span>
+        <button className="w-full flex gap-2 p-2 items-center text-lg">
+          <Toggle onClick={handleMode} />
+          <span
+            className={
+              isDark ? "text-black" : "text-gray-800 dark:text-gray-200"
+            }
+          >
+            {isDark ? "Light" : "Dark"}
+          </span>
         </button>
       </div>
     </div>

@@ -19,8 +19,8 @@ const Users = () => {
   const [selected, setSelected] = useState(null);
   const [team, setTeam] = useState([]);
   const [isAdd, setIsAdd] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Loading state
   const { fetchUser, loadUser } = useContext(UserContext);
-
   const dispatch = useDispatch();
 
   const deleteHandler = async () => {
@@ -32,7 +32,7 @@ const Users = () => {
     }
   };
 
-  const deleteClick = async (id) => {
+  const deleteClick = (id) => {
     setSelected(id);
     setOpenDialog(true);
   };
@@ -43,9 +43,11 @@ const Users = () => {
   };
 
   const getTeam = async () => {
+    setIsLoading(true); // Start loading
     const users = await getRequest("/user/get-team");
     setTeam(users?.data);
     dispatch(setUsers(users?.data));
+    setIsLoading(false); // End loading
   };
 
   useEffect(() => {
@@ -53,46 +55,43 @@ const Users = () => {
   }, [fetchUser]);
 
   const TableHeader = () => (
-    <thead className="border-b border-gray-300">
-      <tr className="text-black text-left">
+    <thead className="border-b border-gray-300 dark:border-gray-600">
+      <tr className="text-black dark:text-white text-center">
         <th className="py-2">Full Name</th>
         <th className="py-2">Title</th>
         <th className="py-2">Email</th>
         <th className="py-2">Role</th>
         <th className="py-2">Active</th>
+        <th className="py-2">Actions</th> {/* Added Actions header */}
       </tr>
     </thead>
   );
 
   const TableRow = ({ user }) => (
-    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10">
-      <td className="p-2">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-blue-700">
-            <span className="text-xs md:text-sm text-center">
-              {getInitials(user.name)}
-            </span>
-          </div>
-          {user.name}
+    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-600">
+      <td className="p-2 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-blue-700">
+          <span className="text-xs md:text-sm text-center">
+            {getInitials(user.name)}
+          </span>
         </div>
+        {user.name}
       </td>
-
       <td className="p-2">{user.title}</td>
-      <td className="p-2">{user.email || "user.emal.com"}</td>
+      <td className="p-2">{user.email || "user.email.com"}</td>
       <td className="p-2">{user.role}</td>
-
       <td>
         <button
-          // onClick={() => userStatusClick(user)}
           className={clsx(
             "w-fit px-4 py-1 rounded-full",
-            user?.isActive ? "bg-blue-200" : "bg-yellow-100"
+            user?.isActive
+              ? "bg-blue-200 dark:bg-blue-600 text-black"
+              : "bg-yellow-100 dark:bg-yellow-500 text-black"
           )}
         >
-          {user?.isActive ? "Active" : "InActive"}
+          {user?.isActive ? "Active" : "Inactive"}
         </button>
       </td>
-
       <td className="p-2 flex gap-4 justify-end">
         <Button
           className="text-blue-600 hover:text-blue-500 font-semibold sm:px-0"
@@ -103,7 +102,6 @@ const Users = () => {
             setIsAdd(false);
           }}
         />
-
         <Button
           className="text-red-700 hover:text-red-500 font-semibold sm:px-0"
           label="Delete"
@@ -118,7 +116,7 @@ const Users = () => {
     <>
       <div className="w-full md:px-1 px-0 mb-6">
         <div className="flex items-center justify-between mb-8">
-          <Title title="  Team Members" />
+          <Title title="Team Members" />
           <Button
             label="Add New User"
             icon={<IoMdAdd className="text-lg" />}
@@ -130,16 +128,20 @@ const Users = () => {
           />
         </div>
 
-        <div className="bg-white px-2 md:px-4 py-4 shadow-md rounded">
+        <div className="bg-white px-2 md:px-4 py-4 shadow-md rounded dark:bg-gray-800">
           <div className="overflow-x-auto">
-            <table className="w-full mb-5">
-              <TableHeader />
-              <tbody>
-                {team?.map((user, index) => (
-                  <TableRow key={index} user={user} />
-                ))}
-              </tbody>
-            </table>
+            {isLoading ? ( // Loading state
+              <div className="flex justify-center py-4">Loading...</div>
+            ) : (
+              <table className="w-full mb-5">
+                <TableHeader />
+                <tbody>
+                  {team?.map((user) => (
+                    <TableRow key={user._id} user={user} />
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

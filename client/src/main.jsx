@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import "./index.css";
 import store from "./redux/store";
 import { UserProvider } from "./context/AuthContext.jsx";
+import "rsuite/dist/rsuite.min.css"; // or 'rsuite/styles/index.less';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

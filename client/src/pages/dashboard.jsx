@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MdAdminPanelSettings,
   MdKeyboardArrowDown,
@@ -16,38 +16,119 @@ import UserInfo from "../components/UserInfo";
 import { getRequest } from "./../common/apiRequest";
 import { useDispatch, useSelector } from "react-redux";
 import { setData } from "../redux/slices/dashboardSlice";
+import { GoSortAsc, GoSortDesc } from "react-icons/go";
 
-const TaskTable = ({ tasks }) => {
+const TaskTable = ({ tasks = [] }) => {
   const ICONS = {
     high: <MdKeyboardDoubleArrowUp />,
     medium: <MdKeyboardArrowUp />,
     normal: <MdKeyboardArrowDown />,
   };
 
+  const [sortConfig, setSortConfig] = useState({
+    key: "title",
+    direction: "asc",
+  });
+  const [sortedTasks, setSortedTasks] = useState([...tasks]);
+
+  useEffect(() => {
+    let sortedData = [...tasks];
+
+    if (sortConfig.key === "title") {
+      sortedData.sort((a, b) => {
+        return sortConfig.direction === "asc"
+          ? a.title.localeCompare(b.title)
+          : b.title.localeCompare(a.title);
+      });
+    } else if (sortConfig.key === "date") {
+      sortedData.sort((a, b) => {
+        return sortConfig.direction === "asc"
+          ? new Date(a.createdAt) - new Date(b.createdAt)
+          : new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    } else if (sortConfig.key === "priority") {
+      sortedData.sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 2, normal: 1 };
+        return sortConfig.direction === "asc"
+          ? priorityOrder[a.priority] - priorityOrder[b.priority]
+          : priorityOrder[b.priority] - priorityOrder[a.priority];
+      });
+    }
+
+    setSortedTasks(sortedData);
+  }, [tasks, sortConfig]);
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
   const TableHeader = () => (
-    <thead className="border-b border-gray-300 ">
-      <tr className="text-black text-left">
-        <th className="py-2">Task Title</th>
-        <th className="py-2">Priority</th>
+    <thead className="border-b border-gray-300 dark:border-gray-600">
+      <tr className="text-black dark:text-gray-300 text-left">
+        <th
+          className="py-2 max-w-xs cursor-pointer"
+          onClick={() => requestSort("title")}
+        >
+          <div className="flex">
+            Task Title
+            {sortConfig.key === "title" &&
+              (sortConfig.direction === "asc" ? (
+                <GoSortAsc className="ml-1 mt-1" />
+              ) : (
+                <GoSortDesc className="ml-1 mt-1" />
+              ))}
+          </div>
+        </th>
+        <th
+          className="py-2 cursor-pointer"
+          onClick={() => requestSort("priority")}
+        >
+          <div className="flex">
+            Priority
+            {sortConfig.key === "priority" &&
+              (sortConfig.direction === "asc" ? (
+                <GoSortAsc className="ml-1 mt-1" />
+              ) : (
+                <GoSortDesc className="ml-1 mt-1" />
+              ))}
+          </div>
+        </th>
         <th className="py-2">Team</th>
-        <th className="py-2 hidden md:block">Date</th>
+        <th
+          className="py-2 hidden md:block cursor-pointer"
+          onClick={() => requestSort("date")}
+        >
+          <div className="flex">
+            Date
+            {sortConfig.key === "date" &&
+              (sortConfig.direction === "asc" ? (
+                <GoSortAsc className="ml-1 mt-1" />
+              ) : (
+                <GoSortDesc className="ml-1 mt-1" />
+              ))}
+          </div>
+        </th>
       </tr>
     </thead>
   );
 
   const TableRow = ({ task }) => (
-    <tr className="border-b border-gray-300 text-gray-600 hover:bg-gray-300/10">
-      <td className="py-2">
+    <tr className="border-b border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-300/10 dark:hover:bg-gray-700/10">
+      <td className="py-3 max-w-xs overflow-hidden overflow-ellipsis whitespace-nowrap">
         <div className="flex items-center gap-2">
           <div
             className={clsx("w-4 h-4 rounded-full", TASK_TYPE[task.stage])}
           />
-
-          <p className="text-base text-black">{task.title}</p>
+          <p className="text-base text-black dark:text-gray-300">
+            {task.title}
+          </p>
         </div>
       </td>
-
-      <td className="py-2">
+      <td className="py-3">
         <div className="flex gap-1 items-center">
           <span className={clsx("text-lg", PRIOTITYSTYELS[task.priority])}>
             {ICONS[task.priority]}
@@ -55,8 +136,7 @@ const TaskTable = ({ tasks }) => {
           <span className="capitalize">{task.priority}</span>
         </div>
       </td>
-
-      <td className="py-2">
+      <td className="py-3">
         <div className="flex">
           {task.team.map((m, index) => (
             <div
@@ -71,80 +151,26 @@ const TaskTable = ({ tasks }) => {
           ))}
         </div>
       </td>
-      <td className="py-2 hidden md:block">
-        <span className="text-base text-gray-600">
+      <td className="py-3 hidden md:block">
+        <span className="text-base text-gray-600 dark:text-gray-400">
           {moment(task?.createdAt).fromNow()}
         </span>
       </td>
     </tr>
   );
+
   return (
-    <>
-      <div className="w-full  bg-white px-2 md:px-4 pt-4 pb-4 shadow-md rounded">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <TableHeader />
-            <tbody>
-              {tasks?.map((task, id) => (
-                <TableRow key={id} task={task} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <div className="w-full bg-white dark:bg-gray-800 px-2 md:px-4 pt-4 pb-4 shadow-md rounded">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <TableHeader />
+          <tbody>
+            {sortedTasks?.map((task, id) => (
+              <TableRow key={id} task={task} />
+            ))}
+          </tbody>
+        </table>
       </div>
-    </>
-  );
-};
-
-const UserTable = ({ users }) => {
-  const TableHeader = () => (
-    <thead className="border-b border-gray-300 ">
-      <tr className="text-black  text-left">
-        <th className="py-2">Full Name</th>
-        <th className="py-2">Status</th>
-        <th className="py-2">Date</th>
-      </tr>
-    </thead>
-  );
-
-  const TableRow = ({ user }) => (
-    <tr className="border-b border-gray-200  text-gray-600 hover:bg-gray-400/10">
-      <td className="py-2">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full text-white flex items-center justify-center text-sm bg-violet-700 mr-1">
-            <span className="text-center">{getInitials(user?.name)}</span>
-          </div>
-
-          <div>
-            <p> {user.name}</p>
-            <span className="text-xs text-black">{user?.role}</span>
-          </div>
-        </div>
-      </td>
-
-      <td>
-        <p
-          className={clsx(
-            "w-fit px-3 py-1 rounded-full text-sm bg-blue-200 mr-3"
-          )}
-        >
-          Active
-        </p>
-      </td>
-      <td className="py-2 text-sm">{moment(user?.createdAt).fromNow()}</td>
-    </tr>
-  );
-
-  return (
-    <div className="w-full md:w-1/3 bg-white h-fit px-2 md:px-6 py-4 shadow-md rounded">
-      <table className="w-full mb-5">
-        <TableHeader />
-        <tbody>
-          {users?.map((user, index) => (
-            <TableRow key={index + user?._id} user={user} />
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 };
@@ -187,11 +213,13 @@ const Dashboard = () => {
 
   const Card = ({ label, count, bg, icon }) => {
     return (
-      <div className="w-full h-32 bg-white p-5 shadow-md rounded-md flex items-center justify-between">
+      <div className="w-full h-32 bg-white dark:bg-gray-800 p-5 shadow-md rounded-md flex items-center justify-between">
         <div className="h-full flex flex-1 flex-col justify-between">
-          <p className="text-base text-gray-600">{label}</p>
-          <span className="text-2xl font-semibold">{count}</span>
-          <span className="text-sm text-gray-400"></span>
+          <p className="text-base text-gray-600 dark:text-gray-300">{label}</p>
+          <span className="text-2xl font-semibold text-gray-900 dark:text-white">
+            {count}
+          </span>
+          <span className="text-sm text-gray-400 dark:text-gray-500"></span>
         </div>
 
         <div
@@ -215,6 +243,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     getDashboardData();
+    console.log("hi");
   }, []);
 
   return (
@@ -225,8 +254,8 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="w-full bg-white my-16 p-4 rounded shadow-sm">
-        <h4 className="text-xl text-gray-600 font-semibold">
+      <div className="w-full bg-white dark:bg-gray-800 my-16 p-4 rounded shadow-sm">
+        <h4 className="text-xl text-gray-600 dark:text-gray-300 font-semibold mb-2">
           Chart by Priority
         </h4>
         <Chart chartData={dashboard?.graphData} />

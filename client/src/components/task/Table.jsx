@@ -17,11 +17,12 @@ import { putRequest } from "../../common/apiRequest";
 import { UserContext } from "../../context/AuthContext";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 const ICONS = {
   high: <MdKeyboardDoubleArrowUp />,
   medium: <MdKeyboardArrowUp />,
-  low: <MdKeyboardArrowDown />,
+  normal: <MdKeyboardArrowDown />,
 };
 
 const Table = ({ tasks }) => {
@@ -37,6 +38,10 @@ const Table = ({ tasks }) => {
     setOpenDialog(true);
   };
 
+  const editClicks = (task) => {
+    s;
+  };
+
   const deleteHandler = async () => {
     if (selected) {
       const deletedTask = await putRequest(`task/${selected}`, {});
@@ -44,54 +49,57 @@ const Table = ({ tasks }) => {
         toast.success("Task deleted successfully");
       }
       loadTask(true);
+      setOpenDialog(false);
     }
   };
 
   const TableHeader = () => (
-    <thead className="w-full border-b border-gray-300">
-      <tr className="w-full text-black  text-left">
-        <th className="py-2">Task Title</th>
-        <th className="py-2">Priority</th>
-        <th className="py-2 line-clamp-1">Date</th>
-        <th className="py-2">Assets</th>
-        <th className="py-2">Team</th>
+    <thead className="w-full border-b border-gray-300 dark:border-gray-700">
+      {" "}
+      {/* Adjusted border color for dark mode */}
+      <tr className="w-full text-black dark:text-gray-100 text-left">
+        <th className="py-2 w-1/3">Task Title</th>
+        <th className="py-2 w-1/6">Priority</th>
+        <th className="py-2 w-1/6">Date</th>
+        <th className="py-2 w-1/6">Assets</th>
+        <th className="py-2 w-1/6">Team</th>
       </tr>
     </thead>
   );
 
   const TableRow = ({ task }) => (
-    <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-300/10">
-      <td className="py-2">
+    <tr className="border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300/10 dark:hover:bg-gray-600">
+      {" "}
+      {/* Adjusted colors for dark mode */}
+      <td className="py-2 max-w-xs truncate">
         <div className="flex items-center gap-2">
           <div
             className={clsx("w-4 h-4 rounded-full", TASK_TYPE[task.stage])}
           />
-          <p className="w-full line-clamp-2 text-base text-black">
+          <p
+            className="w-full text-base text-black dark:text-gray-100 truncate"
+            title={task?.title}
+          >
             {task?.title}
           </p>
         </div>
       </td>
-
       <td className="py-2">
         <div className={"flex gap-1 items-center"}>
           <span className={clsx("text-lg", PRIOTITYSTYELS[task?.priority])}>
             {ICONS[task?.priority]}
           </span>
-          <span className="capitalize line-clamp-1">
-            {task?.priority} Priority
-          </span>
+          <span className="capitalize line-clamp-1">{task?.priority}</span>
         </div>
       </td>
-
       <td className="py-2">
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           {formatDate(new Date(task?.date))}
         </span>
       </td>
-
       <td className="py-2">
         <div className="flex items-center gap-3">
-          <div className="flex gap-1 items-center text-sm text-gray-600">
+          <div className="flex gap-1 items-center text-sm text-gray-600 dark:text-gray-400">
             <BiMessageAltDetail />
             <span>{task?.activities?.length}</span>
           </div>
@@ -105,7 +113,6 @@ const Table = ({ tasks }) => {
           </div>
         </div>
       </td>
-
       <td className="py-2">
         <div className="flex">
           {task?.team?.map((m, index) => (
@@ -121,15 +128,8 @@ const Table = ({ tasks }) => {
           ))}
         </div>
       </td>
-
       {user?.isAdmin ? (
         <td className="py-2 flex gap-2 md:gap-4 justify-end">
-          <Button
-            className="text-blue-600 hover:text-blue-500 sm:px-0 text-sm md:text-base"
-            label="Edit"
-            type="button"
-          />
-
           <Button
             className="text-red-700 hover:text-red-500 sm:px-0 text-sm md:text-base"
             label="Delete"
@@ -140,7 +140,7 @@ const Table = ({ tasks }) => {
       ) : (
         <td>
           <Button
-            className=" ml-2 text-blue-600 hover:text-blue-600 sm:px-0 text-sm md:text-base"
+            className="ml-2 text-blue-600 hover:text-blue-600 sm:px-0 text-sm md:text-base"
             label="Open"
             type="button"
             onClick={() => {
@@ -151,9 +151,12 @@ const Table = ({ tasks }) => {
       )}
     </tr>
   );
+
   return (
     <>
-      <div className="bg-white  px-2 md:px-4 pt-4 pb-9 shadow-md rounded">
+      <div className="bg-white dark:bg-gray-800 px-2 md:px-4 pt-4 pb-9 shadow-md rounded">
+        {" "}
+        {/* Added dark mode background */}
         <div className="overflow-x-auto h-screen">
           <table className="w-full ">
             <TableHeader />
@@ -166,7 +169,6 @@ const Table = ({ tasks }) => {
         </div>
       </div>
 
-      {/* TODO */}
       <ConfirmatioDialog
         open={openDialog}
         setOpen={setOpenDialog}

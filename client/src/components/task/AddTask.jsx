@@ -96,7 +96,7 @@ const AddTask = ({ task, open, setOpen, isEdit }) => {
 
   return (
     <>
-      <ModalWrapper open={open} setOpen={setOpen}>
+      <ModalWrapper open={open} setOpen={setOpen} className="">
         {/* Loader on top with blue background */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center z-50">

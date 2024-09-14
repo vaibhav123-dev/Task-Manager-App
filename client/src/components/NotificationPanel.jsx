@@ -10,10 +10,10 @@ import { setNotifications } from "../redux/slices/notificationSlice";
 
 const ICONS = {
   alert: (
-    <HiBellAlert className="h-5 w-5 text-gray-600 group-hover:text-indigo-600" />
+    <HiBellAlert className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-indigo-600" />
   ),
   message: (
-    <BiSolidMessageRounded className="h-5 w-5 text-gray-600 group-hover:text-indigo-600" />
+    <BiSolidMessageRounded className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-indigo-600" />
   ),
 };
 
@@ -62,7 +62,7 @@ const NotificationPanel = () => {
     <>
       <Popover className="relative">
         <Popover.Button className="inline-flex items-center outline-none">
-          <div className="w-8 h-8 flex items-center justify-center text-gray-800 relative">
+          <div className="w-8 h-8 flex items-center justify-center text-gray-800 dark:text-gray-300 relative">
             <IoIosNotificationsOutline className="text-4xl" />
             {notifications?.length > 0 && (
               <span className="absolute text-center top-0 right-0 text-sm text-white font-semibold w-5 h-5 rounded-full bg-red-600">
@@ -84,14 +84,14 @@ const NotificationPanel = () => {
           <Popover.Panel className="absolute -right-16 md:-right-2 z-10 mt-5 flex w-screen max-w-max  px-4">
             {({ close }) =>
               notifications?.length > 0 && (
-                <div className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
+                <div className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white dark:bg-gray-800 text-sm leading-6 shadow-lg ring-1 ring-gray-900/5 dark:ring-gray-700">
                   <div className="p-4 max-h-80 overflow-y-auto">
                     {notifications?.map((item, index) => (
                       <div
                         key={item._id + index}
-                        className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50"
+                        className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <div className="mt-1 h-8 w-8 flex items-center justify-center rounded-lg bg-gray-200 group-hover:bg-white">
+                        <div className="mt-1 h-8 w-8 flex items-center justify-center rounded-lg bg-gray-200 dark:bg-gray-700 group-hover:bg-white dark:group-hover:bg-gray-600">
                           {ICONS[item.notiType]}
                         </div>
 
@@ -99,13 +99,13 @@ const NotificationPanel = () => {
                           className="cursor-pointer"
                           onClick={() => viewHandler(item)}
                         >
-                          <div className="flex items-center gap-3 font-semibold text-gray-900 capitalize">
+                          <div className="flex items-center gap-3 font-semibold text-gray-900 dark:text-gray-100 capitalize">
                             <p> {item.notiType}</p>
-                            <span className="text-xs font-normal lowercase">
+                            <span className="text-xs font-normal lowercase dark:text-gray-400">
                               {moment(item.createdAt).fromNow()}
                             </span>
                           </div>
-                          <p className="line-clamp-1 mt-1 text-gray-600">
+                          <p className="line-clamp-1 mt-1 text-gray-600 dark:text-gray-400">
                             {item.text}
                           </p>
                         </div>
@@ -113,14 +113,14 @@ const NotificationPanel = () => {
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-2 divide-x bg-gray-50">
+                  <div className="grid grid-cols-2 divide-x bg-gray-50 dark:bg-gray-700">
                     {callsToAction.map((item) => (
                       <button
                         key={item.name}
                         onClick={
                           item?.onClick ? () => item.onClick() : () => close()
                         }
-                        className="flex items-center justify-center gap-x-2.5 p-3 font-semibold text-blue-600 hover:bg-gray-100"
+                        className="flex items-center justify-center gap-x-2.5 p-3 font-semibold text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-600"
                       >
                         {item.name}
                       </button>
