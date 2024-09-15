@@ -34,7 +34,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 p-5 bg-white dark:bg-gray-800">
+    <div className="w-full  h-full flex flex-col gap-6 p-5 bg-white dark:bg-gray-800">
       <h1 className="flex gap-1 items-center">
         <p className="bg-blue-600 p-2 rounded-full">
           <MdOutlineAddTask className="text-white text-2xl font-black" />
@@ -132,7 +132,7 @@ const Sidebar = () => {
           <Toggle onClick={handleMode} />
           <span
             className={
-              isDark ? "text-black" : "text-gray-800 dark:text-gray-200"
+              isDark ? "text-white" : "text-gray-800 dark:text-gray-200"
             }
           >
             {isDark ? "Light" : "Dark"}

@@ -36,7 +36,7 @@ export const MobileSidebar = () => {
             )}
             onClick={closeSidebar}
           >
-            <div className="bg-white w-3/4 h-full">
+            <div className="bg-white w-3/4 h-full dark:bg-gray-800">
               <div className="w-full flex justify-end px-5">
                 <button
                   onClick={closeSidebar}

@@ -67,7 +67,7 @@ const Trash = () => {
 
   const TableHeader = () => (
     <thead className="border-b border-gray-300 dark:border-gray-600">
-      <tr className="text-black dark:text-white text-center hover:bg-gray-200 dark:hover:bg-gray-700">
+      <tr className="text-black dark:text-white text-left hover:bg-gray-200 dark:hover:bg-gray-700">
         <th scope="col" className="py-2">
           Task Title
         </th>
@@ -86,7 +86,7 @@ const Trash = () => {
 
   const TableRow = ({ item }) => (
     <tr className="border-b border-gray-200 text-gray-600 hover:bg-gray-400/10 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-      <td className="py-2">
+      <td className="py-2 max-w-xs">
         <div className="flex items-center gap-2">
           <div
             className={clsx("w-4 h-4 rounded-full", TASK_TYPE[item.stage])}
